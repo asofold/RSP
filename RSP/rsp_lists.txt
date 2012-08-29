@@ -1,0 +1,567 @@
+
+RSP lists
+--------------------
+
+PLANNED / QUESTIOSN
+-----------------------------
+
+- ?(Add) Jail-like support. (deny enter, deny exit)
+- !(add) command throwing support !
+
+- !(add) Configuration for stats (period + n )
+
+- ?(add) Handling conflicts on removing to-have perms / permdefs
+- !(add) Configuration: remember which defs read from config, on re read just remove those + flag - delete on re-read (default = false) !,
+- !(add) owner and member restriction for groups. [maybe an ANYWHERE group for owners, members ?]
+- !(internals) Only check cache if data is checked.  
+- !(internals) on removing - remove empty sets + empty maps!
+- !(internals) make use of PlayerData.isChecked flag for performance.
+- ?CHECK: policy - if to remove perms on logout ?
+- ?Sometimes a full recheck might be necessary (pex reload) -> hook into the permissions plugin (!).
+- ? for removal: iterate over all groups rather than all permdefs (or create preset sets for that).
+
+***
+- ?(add) permGroup reference counting ?
+- !(internals) Only remove all perms on login or reload (!), and use all groups instead of all permdefs !.
+- ?(internals) keep player data longer ? to avoid unnecessary rechecking ?
+- !(add) hook for permission plugins ! [checkout all ?]
+- !(internals) More efficient checkout all (check all player data and online players, but dont unnessecarily create PlayerData instances.
+- !(internals) Split perm cache from id cache and last pos ? [id cache and last pos are internally controlled, will not change from outside, API is under control]
+- ?(Add) For accuracy of heuristics: add a count for staying at the same position or a even a checking task.
+- !(add) Events for leave and enter and possible other. -> config + API !
+
+*(0.X.0) [RELEASE READY]
+- !(add) Enable / disable.
+- !NOTE: split PermDefs etc. from basic configuration ?
+- !(internals) Get rid of unnecessary null checks.
+
+- ?(add) issue server commands (or even player commands) on enter/leave (as with registered methods).
+
+
+
+- !(add) Test cases for config / add+re,move permdefs
+- ! TODO: ?call interfaces alltogether in the next tick (accumulated)
+- ? policy for lowercase / uppercase naming ?
+- ?(add) lazy-time in config for not checking again within that time. [maybe with lazy-dist2]
+
+*** ? check: (how/if to)  refactor to map to groups (+reference count or sim.) instead of permdefs ?
+** ! convention for naming of permdefs (lowercase?)
+
+- ?(add) make available to have the on enter and onexit calls even if no permissions plugin is there.
+- ?(add) Cache for who has been fully checked during enabled-runtime
+- !(add) Have in memory which players are in which region ?
+
+- ?(add) Add option to add/keep unused regions as well, to track where players are !
+- ?(add) option to track WorldEdit selection ?
+
+
+- ?(Add) API call for getting the regions a player is in.
+- !(bugfix) region enter after login + restart [API: callOnEnter]?
+- !(change) idCache: distinguish: deleteCache, expireCache 
+
+?(add) Feature: last region enter timestamp ? 
+
+***
+
+- !(refactor): Use x,y,z anyway (allows for config setting region.testAtMaximumY
+*** !(add) setWorldGuard: Test if worldguard works at all (maybe even schedule a random test!)! 
+- ?(add) Permissions Phoenix support.
+- !(add) Option to check a maximum y coordinate always !
+- !(bugfix) All messages to console: start with [RSP] (filter method ?)
+- !(add) Configuration for stats interval/n
+
+---*
+
+
+
+***
+-  ?(add) Vault supports
+- ! Essentials GroupManager support !
+- !(add) lazydist flag for accuracy on leave !
+
+*** Performance improvements + cleanup !
+
+- (add) Colors to stats-message, if desired.
+
+*** WOrk over to use groupsToAdd, GroupsToRemove, maybe same for permdefs (present, remove).
+*** CHECK FOR valid positions on teleports etc. schedule teleport !
+? use block pos for last valid position ?
+
+- ?(add) only check within bounds on vehicle move if within lazy dist ?
+
+
+- ?(add) digested PermDefData ? 
+- ?(add) WG FLAG support
+
+*** CHECK FOR PERFORMANCE IMPROVEMENTS
+
+*** ADD ownership support 
+
+? permission check API (hasPerm ( pl, loc, perm)
+
+*** CHECK/DIGEST:
+? more light weight register/unregister !
+! remember checked out players (no rechecking).
+?? more info on Per
+- ingame permdef manip.
+! keep player data a while after logout
+! cfg option:no cache at all
+! permdef: lazydist+ cache lifetime configurable ? (valid while active)
+! cfg: lazydist/invalidation behavior: if to use cache lifetime at all
+check(..) : clear cache => set flag, iterate over present if set.
+! check performance with dynamic permission checks ( no cache for those !)
+CHECK: are permissions detached ?
+! Detach from WorldGuard (+provide internal solution for regions?)
+! dynamic listener registration and unregistration + cmd ?!
+- confine to arbitrary regions ?
+
+? feature: keep track of all regions a player is in, allow on enter, on exit calls ?
+
+
+*** [RELEASE]
+- !(add) a command for a heavy check of all players ? + add task to manipulate all players perms that are on the server (once) (force checkout or so).
+
+
+- ?(add) add stats for permission manipulation ?
+*** consistency with calls : call_reason ? join, kick, quit, teleport, ....
+- ?(add) Ownership based permdefs ?
+*** check for parked etc: getPlayersInRegion
+*** un,inkPermdDef and similar: the new group uses make it necessary to rethink those ... (checkout all ?, what to do with remove-enter etc. -> forget about heavy checks, just keep to what happens on region enter/exit ?)
+?CHECK: where is PlayerData.isChecked used ? Does it need to be set in some more places ?
+*** TODO Check calls: do/should they depend on ignore/filter-perm? If so, adjust impl: add lists to PlayerData
+*** Way more error messages for critical points (startup etc)
+*** Tackle avoid log message spam if something is missing (peridodic warning, remember checkled out players)
+*** Tackle: has/hasnot cache + expiration vs changing filter/ignore perms -> inconsistency
+- ?(add) Register events on demand + hasConfined flag for listeners (one class per event..)!
+- ?(add) Support for messages on enter/leave and the like (respecting the permissions).
+*** CHECK: Is portal creation event really necessary to check ? Teleport should do !
+*** REFACTOR: Do not remove rids from cache, but do remove permission on expiration.
+- ?(add) Support for a random choice for adding ?
+*** Policy + Config and internals for removing / adding ALL permissions on quit/join etc.
+*** ONGOING
+- !(add) rsp info command , stating world confinement or all settings
+
+
+*** PERFORMANCE TESTS WITH CHECKING PERMISSIONS BY WORLD !
+*** PERFORMANCE TESTS WITH PERMISSION CACHE REMOVED !
+- ?add freeze players ! 
+- !(bugfix) Rare: Permission checks on target location (concerning the world).
+
+? check: playrchangedworld and other: double checking !
+?add: flag for preventing creation if out of portal radius
+*** CLEANUP SETTINGS: when to checkout and if (make configurable so as to never if desired).
+*** No uneccessary rechecking of permdefs if cache is valid, light perm check if recheck
+- ?(add) options: never-save (i.e. more flags), full-checkout (possible: never fully checkout). 
+- !(add) check/getData : if a player is checked out and there is no Map for the world: no checkout !
+- !(bugfix) checkParked: prevent to iterate over all parked again and again (on scheduled task).
+
+* ENSURE: API for rechecking a player (checkout)!
+- ?(add) stats reset <name>
+- ?(add) configure: checkout on cache-expiration ? []
+- !(add) try-catch for the ...All methods and for mightSaveChanges etc.. (applies to isAvailable actually)
+- !(add) Configurable: ticks and number for checkout parked (default: 1 per 2 ticks).
+
+- !(check) latest versions of bPermissions, PEX: thread safe saving ?
+- ?(add) expire parked list
+
+* use checkConfinement for Respawn ?
+-CHECK : resetting the lastvalidloc where ? (crossworld tp)
+- !(bugfix) on crossworld tp: prevent tp ?
+
+!(add) flag for permdefs or in general: restrict to a world or for all worlds
+
+? allow defining external read-only-files to read further config stuff (allows other plugins to store stuff on shutdown) ?
+
+! TEST / DOC: polygonal regions with WG + rsp + ping plugin or ping command! => DOES NOT WORK
+!
+
+
+
+!(bugfix) Preserve group order if possible? 
+
+STACK
+---------------------------------------------------
+
+*** (3.0.0)
+? API: get AFK time ?
+? make it a permissions plugin (RSP.hasPermission(Player, Location)) [needs refactoring to have a virtual PlayerData object being used consistently ? Maybe also needs extensive caching of all sorts of things to be fast, on the other hand, fast....]
+
+*** (2.0.0)
+
+- ?(add) inheritance for permdefs ? 
+! (add) priorities for permdefs ! [or use region priorities]
+! (add) lazy-dist per permdef ! [to force a minimum]
+s
+
+*** (1.0.0)
+
+*** VARIOUS
+- ? stats for changing perms?
+- ?(add) option to log permission group changes ?
+- ?ADD DEBUG MODE (something, maybe generic permdefs are ok).
+- ?get rid of creating portals, 
+
+*** HOOKS
+- ?(add) config list: add-hooks ?
+- ?(add) config-list: exclude-hooks, to prevent using those hooks [By Factory name or by permissions name or by plugin name]
+- ?(add) for Vault: RSPCore.dispatchSaveCommand + config: save-command (+ %world, %player), for those permission plugins that need and have saving that Vault does not do.
+
+*** CONSISTENCY
+- !(add) Consistency options (explicit permission removal): command based and automatic. [probably done by generic links]
+
+*** CONFIGURATION
+
+*** PRECISION
+- ?(add) Priorities for permdefs ? [add@a, rem@b => add or rem]
+- ?(add) Permdef specific lazy-dist ? [aim: exact exit] 
+
+*** DOCS
+
+*** BUGS
+- !WAIT for Vault users feedback.
+
+*** GENERIC LINKS
+- Region link
+- Ownership links are easy !
+- CanBuild link !
+!(add) Generic permdefs: owner (member) + join + quit + ...  -> world specific ? allow generic-links per world ! + add id to permdefdata (for faster reference !)
+
+*** PERFORMANCE
+- !(add) a applyGroupChanges method for interfaces (add, remove) so that setGroups can be used, where available.
+
+*** BUGS
+
+
+- !CHECK: FORGOT
+- !CHECK: bPermissions: Does have a "default world" ? if use-worlds is false that should be used !
+? (add) Features that blend in well with all the checking: who is where, who has been in what region (with divisor for pos).
+
+
+! (add) IMPROVE PERFORMANCE: cache groups during check, then use setgroups, therefore getgroups !  [has checks are much faster]
+! (add) checkout-at-all
+- !add: consistency commands that help removing all used groups for administrational purposes (maybe as flags too).
+? use-superperms flag ?
+- !(add) IPermissionsUser.applyChanges ! Use intelligent ways of changing groups (cache and then setGroups)!
+
+* keep-permdefs-on-reload ?
+
+* total stats ?
+
+
+* !generic permdsefs : rethink configuration.
+
+? pex : use setGroups !
+? (add) Captcha feature [global one, + optionally per player a) by mod, b) by player himself! -> confine player to a position ]
+
+? Freeze / player moved feature ?
+? add playerInWorld and playerInRegion features
+!(Add) AFK API with configurable permissions for durations and kick !
+
+!(add) generic permdef: nowhere (no region)
+!(add) keep track of all regions a user is in!
+
+
+*** Make independent of Permission plugin -> add superperms hook (instead of dummy) check: allow plugins, deny plugins ?
+
+? Update API for transient groups (Add some).
+
+***
+? concentrate all player data in ... PlayerData (no extra mapping for transient groups?).
+? Calculate all group changes at once (setGroups).
+
+*** change dummyperms to superperms ! ? how: adding / removing groups: fail ?.
+
+onGRoupChangeFailure impls.
+
+
+
+
+?user.prepare: always check result (with empty clause :p)
+
+*** CONFIG UPDATE
+?config: allow to prevent using certain hooks ? or at least change to superperms hook (+isAvailable strategy).
+? world dependent settings: allow flag for not setting the  
+? (add) Config: groups to remove: chekc users on login or so (+playerdata flag + reset those on reload). 
+- much more useful info to rsp info (also comment about /rsp stats)
+!(add) Info about permissions to the config. 
+
+*** ? Add generic permdefs for being in a world.
+
+
+*** 
+?(add) AFK functionality - a) accurate b) advanced: minecart cheats tc   
+!(add) options for "light checks" (world permdefs but no region checks) !
+
+?consider: similar to PEX: bypass the recalculate permissions thingy somehow ?
+
+? consider: add transient permissions by use of hooked plugins ? [problem onl mnakes sense if they delay recalculation or allow sets of permissions] 
+
+consider some queuing or tick task design ?
+
+*** Half a permissions plugin
+
+
+*** sophisticated caching ?
+
+? rethink complete concept with groups etc ? -> decorate permission groups ? (allow remove)
+
+!(Add) permdefs to be added in general (world change, join etc) => use those for flying permissions + way to make them inactive
+
+? have or have-always permdefs ? -> might be settled with generic permdefs (default, per world,) __global__ links ? 
+
+* cleanup RegionEnter/Exit -> not to register with a permdef ?
+
+?have outside: remember what was removed + add on checkout ?
+
+?assign priorites to external groups as well ? [done by permdefs!]
+
+*** Translate have-inside and have-outside to differing priorities for enter/exit
+
+*** Add priorities
+
+!(add) priorities to transient permissions handling
+
+!(add) Use priority also for group ordering (? 2 switches: ascending + how to relate to perm plugins groups).
+!(add) priorites to groups (if added / removed) => use maps to highest priorities for add, remove => actual action
+
+*** ? bugfix about expiraton / removal ?
+
+*** ? compat: remove / add one by one (still by calculated order) or + getGroups + setGroups
+
+
+*** consider redesign: keep track of regions all the time.
+
+CHANGELOG
+----------------------------------------------------
+
+(1.1.0)
+- (add) Add SuperPerms replacing dummy perms (thus being independent of permissions plugins).
+
+(1.0.0)
+- (CHANGE) Packet naming.
+
+(1.0.0-DEV-3)
+- (CHANGE) Packet structure.
+- (adjust) Tweaks for IPermissionUser.prepare.
+
+(1.0.0-DEV-2)
+- (bugfix) Check permissions with superperms where compatible (double check in Vault).
+- (add) Extended output for "/rsp info".
+- (add) Usage to /rsp command.
+
+(1.0.0-DEV-1)
+- (add) Experimental: Transient permissions support (group definitions in rsp.yml).
+- (add) API: RSPReloadEvent (PluginEvent).
+- (adjust) Internals changed to allow for more efficient group manipulations (most effects: PEX).
+
+(0.12.2)
+- (bugfix) Add null check for location in isWithinBounds.
+- (update) config: compatlayer
+
+(0.12.1)
+- (bugfix) default confinement settings are now read correctly.
+
+(0.12.0)
+- (add) Also check VehicleExitEvent.
+
+(0.12.0-DEV-7)
+- (bugfix) Empty configuration was written, if none was present.
+
+(0.12.0-DEV-6)
+- (refactor) Reshaped configuration handling to always add defaults, put into one Settings class.
+- (update) compatlayer to 0.2.0
+
+
+(0.12.0-DEV-5)
+- (add) no-parking and save-at-all flags.
+- (add) Command '/rsp ping' to send permission states to the player repeatedly.
+- (adjust) Set default settings to no saving at all.
+- (bugfix) bPermissions: clear changed worlds list [might be obsolete anyway].
+- (internals) Added default values to defualt settings (...).
+
+(0.12.0-DEV-4)
+- (bugfix) Add hard coded adaption for Vault+PermissionsBukkit to force some settings (Global groups, use default settings).
+- (add) lower-case settings for permissions.
+- (refactor) Let Permission hooks use a settings object to get specific settings.
+- (refactor) Split off permdef management form core to PermDefManager (stage 1).
+- (refactor) Split off HookManager from core to clean up code (stage 1).
+
+(0.12.0-DEV-3)
+- (add) use-worlds flag under permissions in the configuration.
+- (add) Error message if adding or removing groups fails.
+- (add) Log name of permissions plugin for Vault.
+- (bugfix) PEX: Check permissions world specific.
+- (bugfix) Label on /rsp stats has been corrected.
+
+(0.12.0-DEV-2)
+- (add) Vault support.
+- (add) Group manipulations: add boolean for result + add warning messages for that.
+- (add) load-plugins configuration option.
+- (adjust) Ensure that permissions hooks are checked on reloading.
+
+(0.11.11)
+- (add) Do add color to stats output.
+
+(0.11.10) [digest]
+- (bugfix) portal use with confinement.
+
+(0.11.8)
+- (add) Stats for saving changes (!).
+- (adjust) Checkout parked: save one data per 2 ticks by default.
+- (internals) Add null check in PexPerms/saveChanges (no issue, but to be sure).
+
+(0.11.7)
+- (refactoring) Make some methods static and move some to utility classes.
+- (internals) cleanups: remove PlayerData.has
+- (adjust) DefaultSettings what to show on stats : stats are enabled but no log, no ranges
+
+(0.11.6)
+- (add) Configuration option to control if stats are logged to console: stats.log, show range of durations: stats.show.range
+- (add) commands: /stats clear, /stats on|off
+- (refactor) cleanups/fixes: move scheduleTasks to reloadSettings, scheduleTasks in setTriple, uniform prefix for messages
+- (add) info: add info about permdefs, number of regions in wg, links, add consistency check for data/parked/checkedOut
+- (adjust) stats: add  min and max values, remove showing the sum and fraction part, add grouping(3)
+
+(0.11.5)
+- (remove) TEST: remove has and hasNot cache (comment out).
+ 
+(0.11.4)
+- (add) /rsp info to show sizes of stored data.
+
+(0.11.3)
+- (refactor) check: check present ids for expired and new permdefs. [currently only addEnter]
+- (refactor) Use groups to add and remove, apply after all permdefs have been checked, no more permission manipulations inside of PlayerData routines.
+- (refactor) check: reorder some things, remove some unnecessary checks.
+- (refactor) PlayerData: clearCache for cache deletion, checkCache will not delete ids.
+- (bugfix) unlinkPermdef: use parked too.
+
+(0.11.2)
+- (adjust) Check: if world has no permdefs, checkout will be done if the id cache is non empty.
+- (refactor) Smaller checkConfinement, split teleport to restoreConfinement
+- (bugfix) PlayerData.checkCache: return null if cache is empty.
+
+(0.11.1)
+- (bugfix) checkParked is never called: (temporary?) schedule a task that does it every 1.5 minutes.
+- (refactor) RSPCore: scheduleTasks
+- (add) Stats entry for checkoutAll.
+
+(0.11.0) 
+- (add) More light checkout/logins: park PlayerData on logout, remember checked out players.
+- (refactor) listener/stats: visibility, use stats Entry class instead of two maps.
+
+(0.10.0)
+- (NOTE) Changing filter or ignore permissions might only take effect after cache lifetime expiration, due to internal caching of some permissions (do net set too low currently, do test performance if you change this setting).
+- (add) Logging of some errors on severe level now, plus using a minimum delay (configurable in ms: errors.log.min-delay).
+- (bugfix) WorldGuard is now set and used, if WorldGuard did not accept a Location.
+- (CHANGE) The filter permission now gets checked for removing permdefs too.
+- (add) New group uses: have-outside, add-enter, remove-exit, add-exit, remove-enter
+- (refactor) Changed packages for some classes, added extra 
+
+(0.9.2)
+- (bugfix) Removed empty entries from plugin.yml .
+
+(0.9.1)
+- (add) Rectangular confinement support.
+- (add) Add VehicleEnterEvent for checking position and border calculation.
+- (add) Add VehicleMoveEvent and VehicleEnterEvent for border calculation
+- (adjust) Make listener methods final.
+- (refactor) checkConfinement method
+
+(0.9.0)
+- (add) world specific settings for lazy-dist and confine
+- (add) confine world settings (limit moving range of players, lazy-dist applies).
+
+
+(0.8.1)
+- (update) compatlayer 0.1.0
+
+(0.8.0)
+- (refactor) Switch to new Event system. [removed warnings]
+
+(0.7.2)
+- (add) Hot fix for compatibility with older WorldGuard versions.
+
+(0.7.1)
+- (add) re-add save-on-check/checkout (saveChanges)
+
+(0.7.0) [RELEASE: beta/dev]
+- (add) Configuration for PermDefs and linking permdefs+regions
+- (bugfix) several places: iterate over playerData.values() right-away, not online players. [ONGOING ?]
+- (add) API call for finding all players that are in a certain region  [does not check perms again !, maybe later: have it in memory anyway !]
+- (bugfix) check cache after world check (on failure of world check this avoids inconsistencies - probably this has no relevance, anyway)
+
+(0.6.0)
+- (add) Scheduled saving of changes as well as forced saving at shutdown (!)
+- (add) Permission interfaces, for PermissionsEx and bPermissions (unchecked!)
+- (internals) Only do full checkout at join and on checking all players (force flag!), not in move etc. [full = removing all perms]
+- (internals) Save on checkout: rather try than return early.
+- (remove) Some configuration options for save-on-...
+
+(0.5.1)
+- (bugfix) Several fixes related to call-only Permdefs, remove null-init for groups in PermDef.
+
+(0.5.0)
+- (add) Interfaces for calling on enter/exit of regions for permdefs.
+- (bugfix) npe: check loc and world for null
+- (refactor) Use playerName as input for check, etc. where feasible.
+- (refactor) Change to adding groups to sets for add-on-enter and remove-on-exit.
+
+(0.4.0)
+- (add) /rsp stats
+- (Add) use stats is configurable.
+
+(0.3.0)
+- (add) Command: /rsp reload
+- (add) Configuration for lazyDist, lifetimeCache, saveOnCheck+Out+all .
+
+(0.2.0)
+- (add) Location heuristic.
+
+(0.1.0)
+- (add) Stats for event handling.
+- (internals) Added interface layer.
+
+(0.0.0)
+- initial version, no config, but API - On server.
+
+
+Schedule
+-------------------------
+- ! handle: overlapping perms for different permdefs (adding + removing same groups at the same time) => maybe get rid of the function calls :)
+- ?(add) Support for generic owner/member checks like permbase.world.property.own|member|* [property is taken from a named registered interface!]
+- !(add) static factory methods for PermDefs, getting the exact world, region ids/names
+- ! efficiency: if pex checks players for changes before saving: first change all then save all ! + make a queue for saving !
+- !(internals) intercept unwanted onEnable calls.
+
+TODO (categorize or do)
+......................................
+- ? omit saving completely - use timed groups adding (pex)?
+- ?(internals) Store RegionManager ? (cache, lifetime)
+- ?(internals) use player changed world event for faster mapping (store map with player ?) 
+- ?world specific groups: maybe think of how to do it and adjust design for later adding.
+- ? efficiency: use array from ids on (seldom changed !)
+- ! more efficient mapping ! -> map groups finally maybe to permdefs (so quickly sure qhich removed).
+- ? a flag for not checking ignore perm on removing groups ?
+- !check: how to bring in edge/hysteresis ? (lazidist does it?)
+- ? add permdef specific settings for lazydist (hmm means just higher accurace on exit ?)?
+- !(add) Maybe no need for recheck / checkout on ordinary login/logout ? Do something more efficient lateron!
+- !(add) polling as a n alternative to  player move !
+- !(add) User saving cache + now and then save some in a synchronous task! + policy / configurability if to save on adding !
+- !(add) empty loc/chunk cache, or heuristic about locations and high regions?
+- !(add) depending on worldguard whole cuboids could be checked for overlap.
+- ??(internals) Chunk heuristic ?
+
+Planned later
+----------------------
+- Command based manipulation of configuration.
+- Polling for regions the players are on, varying polling intervals if in a region (lazy in precise out?).
+
+Questions
+-----------------------------
+- ? bukkit intern perms adding ?
+- ? negative perms
+- ? evaluate: Permissions permission-based (no config setup)
+- ? timed permissions ? similar...
+- ? minimum grant-time + permissions to hold for a PermDef (dont get assigned, but also dont get deleted).
+- ? restrict to permission group as well ?
+- ? owner/member permissions ?

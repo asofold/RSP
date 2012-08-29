@@ -1,0 +1,14 @@
+name: RSP
+main: me.asofold.bpl.rsp.RSP
+version: 1.1.0
+softdepend:
+- WorldGuard
+- PermissionsEx
+- bPermissions
+- Vault
+
+commands:
+  rsp: 
+     description: 'For managing RSP: /rsp <cmd>... for: | reload | info | stats | stats reset | stats off | stats on | ping ... (permissions)'
+     usage: 'For managing RSP: /rsp <cmd>... for: | reload | info | stats | stats reset | stats off | stats on | ping ... (permissions)'
+
