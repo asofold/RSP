@@ -4,7 +4,6 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import me.asofold.bpl.rsp.RSP;
 import me.asofold.bpl.rsp.api.IPermissionUser;
@@ -25,33 +24,64 @@ public class PermissionUtil {
 	 * @return  If the user was changed.
 	 */
 	public static final boolean changeGroups(final String playerName, final TransientMan trMan, final IPermissionUser user, 
-			final Set<String> add, final Set<String> remove, final boolean clear, final boolean prepare){
+			final PrioMap<String> groups, final boolean clear, final boolean prepare){
+		// final Set<String> add, final Set<String> remove
 		boolean changed = false;
 		boolean trChanged = false;
 		if (prepare && !user.prepare()){
 			// TODO: log ?
 		}
-		for ( final String grp : remove){
-			if (add.contains(grp)) continue;
-			if (trMan.isTransient(grp)){
-				if (trMan.removeGroupFromPlayer(playerName, grp, false)) trChanged = true;
+		
+		for (final Entry<String, PrioEntry> entry : groups.entrySet()){
+			final PrioEntry prios = entry.getValue();
+			if (prios.isEmpty()){
+				// Technically this might be impossible.
+				// TODO: policy
+				continue; 
 			}
-			else if (user.inGroup(grp)){
-				user.removeGroup(grp);
-						// ((RSPCore) RSP.getRSPCore()).onRemoveFailure(user.getUserName(), user.getWorldName(), grp);
-				changed = true;
+			final boolean isAdd = prios.isAdd();
+			final String grp = entry.getKey();
+			if (trMan.isTransient(grp)){
+				if (isAdd){
+					if (trMan.addGroupToPlayer(playerName, grp, prios.prioAdd, false)) trChanged = true;
+				}
+				else if (trMan.removeGroupFromPlayer(playerName, grp, false)) trChanged = true;
+			}
+			else{
+				if (isAdd){
+					if (!user.inGroup(grp)){
+						user.addGroup(grp);
+						changed = true;
+					}
+				}
+				else if (user.inGroup(grp)){
+					user.removeGroup(grp);
+					changed = true;
+				}
 			}
 		}
-		for (final String grp : add){
-			if (trMan.isTransient(grp)){
-				if (trMan.addGroupToPlayer(playerName, grp, false)) trChanged = true;
-			}
-			else 
-			if (!user.inGroup(grp)){
-				user.addGroup(grp);
-				changed = true;
-			}
-		}
+		
+//		for ( final String grp : remove){
+//			if (add.contains(grp)) continue;
+//			if (trMan.isTransient(grp)){
+//				if (trMan.removeGroupFromPlayer(playerName, grp, false)) trChanged = true;
+//			}
+//			else if (user.inGroup(grp)){
+//				user.removeGroup(grp);
+//						// ((RSPCore) RSP.getRSPCore()).onRemoveFailure(user.getUserName(), user.getWorldName(), grp);
+//				changed = true;
+//			}
+//		}
+//		for (final String grp : add){
+//			if (trMan.isTransient(grp)){
+//				if (trMan.addGroupToPlayer(playerName, grp, false)) trChanged = true;
+//			}
+//			else 
+//			if (!user.inGroup(grp)){
+//				user.addGroup(grp);
+//				changed = true;
+//			}
+//		}
 		if (trChanged) trMan.updatePlayer(playerName);
 		if (!prepare){
 			// No calls to user.
@@ -65,8 +95,9 @@ public class PermissionUtil {
 			user.discardChanges();
 		}
 		if (clear){
-			add.clear();
-			remove.clear();
+//			add.clear();
+//			remove.clear();
+			groups.clear();
 		}
 		return changed;
 	}
@@ -114,22 +145,22 @@ public class PermissionUtil {
 	* @param attachment
 	* @param permissions
 	*/
-    public static void setPermissions(PermissionAttachment attachment, Map<String, Boolean> permissions, boolean recalculate) {
+    public static final void setPermissions(final PermissionAttachment attachment, final Map<String, Boolean> permissions, final boolean recalculate) {
         try {
-            Field field = PermissionAttachment.class.getDeclaredField("permissions");
+        	final Field field = PermissionAttachment.class.getDeclaredField("permissions");
             field.setAccessible(true);
             @SuppressWarnings("unchecked")
-            Map<String, Boolean> presentPerms = (Map<String, Boolean>) field.get(attachment);
+            final Map<String, Boolean> presentPerms = (Map<String, Boolean>) field.get(attachment);
             presentPerms.clear();
             presentPerms.putAll(permissions);
             if (recalculate) attachment.getPermissible().recalculatePermissions();
         } catch(Throwable t) {
             Utils.warn("[RSP] Fall back to single permission adding - adding transient permissions failed - caused by:");
             t.printStackTrace();
-            for(String perm : attachment.getPermissions().keySet()) {
+            for (final String perm : attachment.getPermissions().keySet()) {
                 attachment.unsetPermission(perm);
             }
-            for(Entry<String, Boolean> entry : permissions.entrySet()) {
+            for (final Entry<String, Boolean> entry : permissions.entrySet()) {
                 attachment.setPermission(entry.getKey(), entry.getValue());
             }
         }

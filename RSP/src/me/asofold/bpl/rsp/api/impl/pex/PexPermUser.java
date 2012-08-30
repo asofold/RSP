@@ -1,6 +1,6 @@
 package me.asofold.bpl.rsp.api.impl.pex;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import me.asofold.bpl.rsp.api.IPermissionSettings;
@@ -83,7 +83,7 @@ public final class PexPermUser implements IPermissionUser {
 	}
 
 	private final void fetchGroups() {
-		if (groupCache == null) groupCache = new HashSet<String>();
+		if (groupCache == null) groupCache = new LinkedHashSet<String>();
 		else groupCache.clear();
 		final PermissionGroup[] groups = user.getGroups(); // TODO: use getGroups(worldName) ?
 		for (int i = 0; i< groups.length; i++){

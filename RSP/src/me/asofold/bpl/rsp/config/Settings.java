@@ -37,7 +37,7 @@ public class Settings {
 	/**
 	 * General world-specific settings.
 	 */
-	public  Map <String, WorldSettings> worlds = new HashMap<String, WorldSettings>();
+	public  Map<String, WorldSettings> worlds = new HashMap<String, WorldSettings>();
 	
 	// heuristic:
 	public final int lazyDist = 5;

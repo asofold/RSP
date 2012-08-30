@@ -8,22 +8,22 @@ public final class BlockPos {
 	public int y;
 	public int z;
 	
-	public BlockPos(String world, int x, int y, int z){
+	public BlockPos(final String world, final int x, final int y, final int z){
 		set(world, x, y, z);
 	}
 	
-	public BlockPos(Location loc) {
+	public BlockPos(final Location loc) {
 		set(loc);
 	}
 
-	public final void set(Location loc) {
+	public final void set(final Location loc) {
 		world = loc.getWorld().getName();
 		x = loc.getBlockX();
 		y = loc.getBlockY();
 		z = loc.getBlockZ();
 	}
 
-	public final void set(String world, int x, int y, int z){
+	public final void set(final String world, final int x, final int y, final int z){
 		this.world = world;
 		this.x = x;
 		this.y = y;
@@ -36,8 +36,8 @@ public final class BlockPos {
 	 * @param d
 	 * @return
 	 */
-	public final boolean setOnDist(Location loc , int d){
-		String bw = loc.getWorld().getName();
+	public final boolean setOnDist(final Location loc , final int d){
+		final String bw = loc.getWorld().getName();
 		int bx = loc.getBlockX();
 		int by = loc.getBlockY();
 		int bz = loc.getBlockZ();

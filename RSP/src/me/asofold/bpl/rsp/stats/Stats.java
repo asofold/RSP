@@ -7,28 +7,43 @@ import java.util.Map;
 
 import org.bukkit.ChatColor;
 
-public class Stats {
-	private static final class Entry{
-		public long dur = 0;
+public final class Stats {
+	
+	public static final class Entry{
+		public long val = 0;
 		public long n = 0;
 		public long min = Long.MAX_VALUE;
 		public long max = Long.MIN_VALUE;
 	}
+	
 	private long tsStats = 0;
 	private long periodStats = 12345;
 	private long nVerbose = 500;
 	private long nDone = 0;
-	private boolean logStats = true;
+	private boolean logStats = false;
 	private boolean showRange = true;
+	
 	private final Map<Integer, Entry> entries = new HashMap<Integer, Stats.Entry>();
 	private final DecimalFormat f;
 	private final String label;
 	
+	/**
+	 * Map id to name.
+	 */
+	private final Map<Integer, String> idKeyMap = new HashMap<Integer, String>();
+	
+	/**
+	 * Map exact name to id. 
+	 */
+	private final Map<String, Integer> keyIdMap = new HashMap<String, Integer>();
+	
+	int maxId = 0;
+	
 	public Stats(){
-		this("[Stats]");
+		this("[STATS]");
 	}
 	
-	public Stats(String label){
+	public Stats(final String label){
 		this.label = label;
 		f = new DecimalFormat();
 		f.setGroupingUsed(true);
@@ -38,27 +53,20 @@ public class Stats {
 		f.setDecimalFormatSymbols(s);
 	}
 	
-	/**
-	 * Map id to name.
-	 */
-	private final Map<Integer, String> idKeyMap = new HashMap<Integer, String>();
-	int maxId = 0;
-	
-	public final void addStats(Integer key, long dur){
-		if ( dur < 0 ) dur = 0;
+	public final void addStats(final Integer key, final long value){
 		Entry entry = entries.get(key);
 		if ( entry != null){
 			entry.n += 1;
-			entry.dur += dur;
-			if (dur < entry.min) entry.min = dur;
-			else if (dur > entry.max) entry.max = dur;
+			entry.val += value;
+			if (value < entry.min) entry.min = value;
+			else if (value > entry.max) entry.max = value;
 		} else{
 			entry = new Entry();
-			entry.dur = dur;
+			entry.val = value;
 			entry.n = 1;
 			entries.put(key,  entry);
-			entry.min = dur;
-			entry.max = dur;
+			entry.min = value;
+			entry.max = value;
 		}
 		if (!logStats) return;
 		nDone++;
@@ -73,18 +81,22 @@ public class Stats {
 		}
 	}
 	
+	/**
+	 * Get stats representation without ChatColor.
+	 * @return
+	 */
 	public final String getStatsStr() {
 		return getStatsStr(false);
 	}
 	
-	public final String getStatsStr(boolean colors) {
-		StringBuilder b = new StringBuilder(400);
+	public final String getStatsStr(final boolean colors) {
+		final StringBuilder b = new StringBuilder(400);
 		b.append(label+" ");
 		boolean first = true;
-		for ( Integer id : entries.keySet()){
+		for (final Integer id : entries.keySet()){
 			if ( !first) b.append(" | ");
-			Entry entry = entries.get(id);
-			String av = f.format(entry.dur / entry.n);
+			final Entry entry = entries.get(id);
+			String av = f.format(entry.val / entry.n);
 			String key = getKey(id);
 			String n = f.format(entry.n);
 			if (colors){
@@ -100,50 +112,69 @@ public class Stats {
 	}
 	
 	/**
-	 * 
+	 * Always returns some string, if not key is there, stating that no key is there.
 	 * @param id
 	 * @return
 	 */
-	public final  String getKey(Integer id) {
+	public final String getKey(final Integer id) {
 		String key = idKeyMap.get(id);
 		if (key == null){
 			key = "<no key for id: "+id+">";
 			idKeyMap.put(id, key);
+			keyIdMap.put(key, id);
 		}
 		return key;
 		
 	}
 	
-	public final Integer getNewId(String key){
+	/**
+	 * Get a new id for the key.
+	 * @param key
+	 * @return
+	 */
+	public final Integer getNewId(final String key){
 		maxId++;
 		while (idKeyMap.containsKey(maxId)){
 			maxId++; // probably not going to happen...
 		}
 		idKeyMap.put(maxId, key);
+		keyIdMap.put(key, maxId);
 		return maxId;
 	}
 	
 	/**
 	 * 
-	 * @param key not null
+	 * @param key
+	 * @param create if to create a key - id mapping if not existent.
 	 * @return
 	 */
-	public final Integer getId(String key){
-		for ( Integer id : idKeyMap.keySet()){
-			if (key.equals(idKeyMap.get(id))) return id;
+	public final Integer getId(final String key, final boolean create){
+		final Integer id = keyIdMap.get(key);
+		if (id == null){
+			if (create) return getNewId(key);
+			else return null;
 		}
-		return null;
+		else return id;
+	}
+	
+	/**
+	 * Gets the id if present, returns null otherwise.
+	 * @param key not null
+	 * @return Key or null.
+	 */
+	public final Integer getId(final String key){
+		return keyIdMap.get(key);
 	}
 
 	public final void clear(){
 		entries.clear();
 	}
 	
-	public void setLogStats(boolean log){
+	public final void setLogStats(final boolean log){
 		logStats = log;
 	}
 	
-	public void setShowRange(boolean set){
+	public final void setShowRange(final boolean set){
 		showRange = set;
 	}
 

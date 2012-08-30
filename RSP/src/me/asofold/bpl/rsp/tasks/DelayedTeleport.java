@@ -10,18 +10,18 @@ import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
  * @author mc_dev
  *
  */
-public class DelayedTeleport implements Runnable {
-	private Location loc;
-	private String playerName;
+public final class DelayedTeleport implements Runnable {
+	private final Location loc;
+	private final String playerName;
 
-	public DelayedTeleport(String playerName, Location loc){
+	public DelayedTeleport(final String playerName, final Location loc){
 		this.playerName = playerName;
 		this.loc = loc;
 	}
 
 	@Override
 	public void run() {
-		Player player = Bukkit.getServer().getPlayerExact(playerName);
+		final Player player = Bukkit.getServer().getPlayerExact(playerName);
 		if ( player != null ){
 			player.setVelocity(new org.bukkit.util.Vector(0,0,0));
 			player.teleport(loc, TeleportCause.PLUGIN);

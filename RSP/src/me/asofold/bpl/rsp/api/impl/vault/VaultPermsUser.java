@@ -1,14 +1,14 @@
 package me.asofold.bpl.rsp.api.impl.vault;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
-
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 
 import me.asofold.bpl.rsp.api.IPermissionSettings;
 import me.asofold.bpl.rsp.api.IPermissionUser;
 import net.milkbowl.vault.permission.Permission;
+
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 public final class VaultPermsUser implements IPermissionUser {
 	
@@ -71,7 +71,7 @@ public final class VaultPermsUser implements IPermissionUser {
 
 	@Override
 	public boolean prepare() {
-		if (groupCache == null) groupCache = new HashSet<String>();
+		if (groupCache == null) groupCache = new LinkedHashSet<String>();
 		else groupCache.clear();
 		final String[] groups = perms.getGroups();
 		for (int i = 0; i < groups.length; i++){

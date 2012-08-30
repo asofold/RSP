@@ -1,6 +1,6 @@
 package me.asofold.bpl.rsp.permissions;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import me.asofold.bpl.rsp.config.compatlayer.CompatConfig;
@@ -14,7 +14,7 @@ import me.asofold.bpl.rsp.config.compatlayer.CompatConfig;
 public class TransientGroup {
 	public final String name;
 	public final String lcName;
-	public final Map<String, Boolean> permissions = new HashMap<String, Boolean>();
+	public final Map<String, Boolean> permissions = new LinkedHashMap<String, Boolean>();
 	
 	
 	public TransientGroup(String groupName){

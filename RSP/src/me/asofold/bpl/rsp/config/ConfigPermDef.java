@@ -1,7 +1,7 @@
 package me.asofold.bpl.rsp.config;
 
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -31,9 +31,9 @@ public class ConfigPermDef {
 	final String defName;
 	String ignorePerm = null;
 	String filterPerm = null;
-	Map<GroupUse, Set<String>> groups = new HashMap<GroupUse, Set<String>>();
-	List<IRegionEnter> callOnEnter = new LinkedList<IRegionEnter>();
-	List<IRegionExit> callOnExit = new LinkedList<IRegionExit>();
+	final Map<GroupUse, Set<String>> groups = new LinkedHashMap<GroupUse, Set<String>>();
+	final List<IRegionEnter> callOnEnter = new LinkedList<IRegionEnter>();
+	final List<IRegionExit> callOnExit = new LinkedList<IRegionExit>();
 	int priority = 0;
 	
 	/**

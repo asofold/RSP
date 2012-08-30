@@ -7,6 +7,7 @@ import me.asofold.bpl.rsp.api.IPermissionUser;
 import me.asofold.bpl.rsp.api.IRegionEnter;
 import me.asofold.bpl.rsp.api.IRegionExit;
 import me.asofold.bpl.rsp.config.PermDef;
+import me.asofold.bpl.rsp.permissions.PrioMap;
 import me.asofold.bpl.rsp.utils.BlockPos;
 
 import org.bukkit.Bukkit;
@@ -33,19 +34,22 @@ public class PlayerData {
 	 * Used for quick diff check. (only consider changes, till reset)
 	 */
 	public final Set<Integer> idCache = new HashSet<Integer>();
-	/**
-	 * Groups to add. Used while check ONLY.
-	 */
-	public final Set<String> grpAdd = new HashSet<String>();
-	/**
-	 * Groups to remove. Used during check ONLY.
-	 */
-	public final Set<String> grpRem= new HashSet<String>();
 	
-//	private final Set<String> hasCache = new HashSet<String>();
-//	private final Set<String> hasNotCache = new HashSet<String>();
+	/**
+	 * For group mnanipulations.
+	 */
+	public final PrioMap<String> groups = new PrioMap<String>(8, 0.3f );
 	
-	public PlayerData(String playerName){
+//	/**
+//	 * Groups to add. Used while check ONLY.
+//	 */
+//	public final Set<String> grpAdd = new HashSet<String>();
+//	/**
+//	 * Groups to remove. Used during check ONLY.
+//	 */
+//	public final Set<String> grpRem= new HashSet<String>();
+	
+	public PlayerData(final String playerName){
 		this.playerName = playerName;
 	}
 
@@ -68,7 +72,7 @@ public class PlayerData {
 	 * 
 	 * @param ts
 	 */
-	public final void onCacheExpire(long ts){
+	public final void onCacheExpire(final long ts){
 		tsCache = ts;
 		checkPos = null; 
 	}
@@ -94,37 +98,43 @@ public class PlayerData {
 	 * @param id
 	 * @return If any groups have been added (might or might not have effect on permissions later).
 	 */
-	public final boolean checkEnter(  IPermissionUser user, PermDefData data, Integer id ){
+	public final boolean checkEnter(final IPermissionUser user, final PermDefData data, final Integer id ){
 		idCache.add(id);
 		boolean changed = false;
 		// check remEnter
-		for ( PermDef def : data.defRemEnter){
+		for (final PermDef def : data.defRemEnter){
 			if (def.ignorePermName != null){
 				if (user.has( def.ignorePermName)) continue; // TODO: subject to policy
 			}
 			if (def.filterPermission != null){
 				if ( !user.has( def.filterPermission)) continue;
 			}
-			grpRem.addAll(def.grpRemEnter);
+//			grpRem.addAll(def.grpRemEnter);
+			for (final String grp : def.grpRemEnter){
+				groups.updateRem(grp, def.priority);
+			}
 			changed = true;
 		}
 		// check addEnter
-		for ( PermDef def : data.defAddEnter){
+		for (final PermDef def : data.defAddEnter){
 			if ( def.ignorePermName != null ){
 				if (user.has(def.ignorePermName )) continue;
 			}
 			if (def.filterPermission != null){
 				if ( !user.has( def.filterPermission)) continue;
 			}
-			grpAdd.addAll(def.grpAddEnter);
+//			grpAdd.addAll(def.grpAddEnter);
+			for (final String grp : def.grpAddEnter){
+				groups.updateAdd(grp, def.priority);
+			}
 			changed = true;
 		}
 		// check calls:
-		for ( PermDef def : data.callOnEnter){
-			for ( IRegionEnter call : def.callOnEnter){
+		for (final PermDef def : data.callOnEnter){
+			for (final IRegionEnter call : def.callOnEnter){
 				try{
 					call.onRegionEnter(playerName, data.worldName, data.rid, def.defName);
-				} catch(Throwable t){
+				} catch(final Throwable t){
 					// TODO: add other info
 					Bukkit.getServer().getLogger().severe("rsp - could not call on enter for permdef '"+def.defName+"': "+t.getMessage());
 					t.printStackTrace();
@@ -144,37 +154,43 @@ public class PlayerData {
 	 * @param id
 	 * @return If any groups have been added (might or might not have effect on permissions later).
 	 */
-	public final boolean checkExit(IPermissionUser user, PermDefData data, Integer id) {
+	public final boolean checkExit(final IPermissionUser user, final PermDefData data, final Integer id) {
 		idCache.remove(id);
 		boolean changed = false;
 		// Check remExit:
-		for ( PermDef def : data.defRemExit){
+		for (final PermDef def : data.defRemExit){
 			if (def.ignorePermName != null){
 				if (user.has( def.ignorePermName)) continue; // TODO: subject to policy
 			}
 			if (def.filterPermission != null){
 				if ( !user.has( def.filterPermission)) continue;
 			}
-			grpRem.addAll(def.grpRemExit);
+//			grpRem.addAll(def.grpRemExit);
+			for (final String grp : def.grpRemExit){
+				groups.updateRem(grp, def.priority);
+			}
 			changed = true;
 		}
 		// Check addExit:
-		for ( PermDef def : data.defAddExit){
+		for (final PermDef def : data.defAddExit){
 			if ( def.ignorePermName != null ){
 				if (user.has(def.ignorePermName )) continue;
 			}
 			if (def.filterPermission != null){
 				if ( !user.has( def.filterPermission)) continue;
 			}
-			grpAdd.addAll(def.grpAddExit);
+//			grpAdd.addAll(def.grpAddExit);
+			for (final String grp : def.grpAddExit){
+				groups.updateAdd(grp, def.priority);
+			}
 			changed = true;
 		}		
 		// check calls:
-		for ( PermDef def : data.callOnExit){
+		for (final PermDef def : data.callOnExit){
 			for ( IRegionExit call : def.callOnExit){
 				try{
 					call.onRegionExit(playerName, data.worldName, data.rid, def.defName);
-				} catch(Throwable t){
+				} catch(final Throwable t){
 					// TODO: add other info
 					Bukkit.getServer().getLogger().severe("rsp - could not call on exit for permdef '"+def.defName+"': "+t.getMessage());
 					t.printStackTrace();
@@ -193,9 +209,9 @@ public class PlayerData {
 	 * @param id
 	 * @return If any groups have been added (might or might not have effect on permissions later).
 	 */
-	public final boolean checkExpire(  IPermissionUser user, PermDefData data, Integer id ){
+	public final boolean checkExpire(final IPermissionUser user, final PermDefData data, final Integer id ){
 		boolean changed = false;
-		for ( PermDef def : data.defAddEnter){
+		for (final PermDef def : data.defAddEnter){
 			if (def.ignorePermName != null){
 				if (user.has( def.ignorePermName)){
 					// no removing here
@@ -203,14 +219,20 @@ public class PlayerData {
 				}
 			}
 			if (def.filterPermission != null){
-				if ( !user.has( def.filterPermission)){
+				if (!user.has(def.filterPermission)){
 					// The permission might have been removed.
-					grpRem.addAll(def.grpAddEnter);
+//					grpRem.addAll(def.grpAddEnter);
+					for (final String grp : def.grpAddEnter){
+						groups.updateRem(grp, def.priority);
+					}
 					changed = true;
 					continue;
 				}
 			}
-			grpAdd.addAll(def.grpAddEnter);
+//			grpAdd.addAll(def.grpAddEnter);
+			for (final String grp : def.grpAddEnter){
+				groups.updateAdd(grp, def.priority);
+			}
 			changed = true;
 		}
 		return changed;

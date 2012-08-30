@@ -19,8 +19,6 @@ import org.bukkit.plugin.java.JavaPlugin;
  * using WorldGuard and PermissionsEx at first.
  * 
  * 
- * 
- * Concept: polling, static access methods at RSP
  * @author mc_dev
  *
  */

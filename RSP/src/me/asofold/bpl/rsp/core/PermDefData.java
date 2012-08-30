@@ -1,6 +1,6 @@
 package me.asofold.bpl.rsp.core;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import me.asofold.bpl.rsp.config.PermDef;
@@ -22,25 +22,25 @@ final class PermDefData {
 	/**
 	 * PermDefs to add at entering a region.
 	 */
-	final Set<PermDef> defAddEnter = new HashSet<PermDef>();
+	final Set<PermDef> defAddEnter = new LinkedHashSet<PermDef>();
 	
 	/**
 	 * PermDefs to remove when leaving a region.
 	 */
-	final Set<PermDef> defRemExit = new HashSet<PermDef>();
+	final Set<PermDef> defRemExit = new LinkedHashSet<PermDef>();
 	
 	/**
 	 * PermDefs to remove when entering a region.
 	 */
-	final Set<PermDef> defRemEnter = new HashSet<PermDef>();
+	final Set<PermDef> defRemEnter = new LinkedHashSet<PermDef>();
 	
 	/**
 	 * PermDefs to add when leaving a region.
 	 */
-	final Set<PermDef> defAddExit = new HashSet<PermDef>();
+	final Set<PermDef> defAddExit = new LinkedHashSet<PermDef>();
 	
-	final Set<PermDef> callOnEnter = new HashSet<PermDef>();
-	final Set<PermDef> callOnExit = new HashSet<PermDef>();
+	final Set<PermDef> callOnEnter = new LinkedHashSet<PermDef>();
+	final Set<PermDef> callOnExit = new LinkedHashSet<PermDef>();
 	
 	String worldName = null;
 	String rid = null;

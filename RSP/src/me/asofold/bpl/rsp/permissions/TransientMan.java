@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import me.asofold.bpl.rsp.config.compatlayer.CompatConfig;
@@ -37,19 +38,19 @@ public class TransientMan {
 	private final Map<String, PermissionAttachment> attachements = new HashMap<String, PermissionAttachment>();
 	
 	/**
-	 * Map lower case player names to Set of lower case group names.
+	 * Map lower case player names to Map of lower case group names mapping to priorities (Integer).
 	 */
-	private final Map<String, Set<String>> inGroup = new HashMap<String, Set<String>>();
+	private final Map<String, Map<String, Integer>> inGroup = new HashMap<String, Map<String, Integer>>();
 	
-	private RSPCore core;
+	private final RSPCore core;
 	
 	public TransientMan(RSPCore core){
 		this.core = core;
 	}
 	
 	
-	public Set<String> clear(){
-		Set<String> changed = new HashSet<String>();
+	public final Set<String> clear(){
+		final Set<String> changed = new HashSet<String>();
 		return clear(changed);
 	}
 	
@@ -59,7 +60,7 @@ public class TransientMan {
 	 * @param update if to recalculate permissions right away.
 	 * @return Set with players whose permissions were changed.
 	 */
-	public Set<String> clear(Set<String> changed){
+	public final Set<String> clear(final Set<String> changed){
 		for (PermissionAttachment attachment : attachements.values()){
 			attachment.remove();
 		}
@@ -75,9 +76,9 @@ public class TransientMan {
 	 * @param update if to recalculate permissions right away.
 	 * @return
 	 */
-	public Set<String> removeGroup(String groupName, Set<String> changed, boolean update){
-		String lcName = groupName.toLowerCase();
-		TransientGroup group = groups.remove(lcName);
+	public final Set<String> removeGroup(final String groupName, final Set<String> changed, final boolean update){
+		final String lcName = groupName.toLowerCase();
+		final TransientGroup group = groups.remove(lcName);
 		if (group == null) return changed;
 		removeGroupFromPlayers(group, changed, update);
 		return changed;
@@ -89,29 +90,29 @@ public class TransientMan {
 	 * @param changed
 	 * @param update
 	 */
-	public void removeGroupFromPlayers(TransientGroup group, Set<String> changed, boolean update) {
-		for (String name : changed){
+	public final void removeGroupFromPlayers(final TransientGroup group, final Set<String> changed, final boolean update) {
+		for (final String name : changed){
 			removeGroupFromPlayer(name, group, changed, update);
 		}
 	}
 	
-	public void removeGroupFromPlayer(String name, TransientGroup group, Set<String> changed, boolean update) {
-		String lcName = name.toLowerCase();
-		Set<String> present = inGroup.get(lcName);
+	public final void removeGroupFromPlayer(final String name, final TransientGroup group, final Set<String> changed, final boolean update) {
+		final String lcName = name.toLowerCase();
+		final Map<String, Integer> present = inGroup.get(lcName);
 		if (present == null) return;
-		if (present.remove(group.lcName)){
+		if (present.remove(group.lcName) != null){
 			changed.add(lcName);
 			if (update) updatePlayer(lcName);
 		}
 	}
 	
-	public void updatePlayers(Set<String> changed) {
+	public final void updatePlayers(final Set<String> changed) {
 		for (String name : changed){
 			updatePlayer(name);
 		}
 	}
 	
-	public void updatePlayer(String name){
+	public final void updatePlayer(final String name){
 		updatePlayer(name, false);
 	}
 	
@@ -120,14 +121,14 @@ public class TransientMan {
 	 * @param lcName
 	 * @param recalculate
 	 */
-	public void updatePlayer(String name, boolean newAttachment) {
-		String lcName = name.toLowerCase();
-		Set<String> present = inGroup.get(lcName);
+	public final void updatePlayer(final String name, final boolean newAttachment) {
+		final String lcName = name.toLowerCase();
+		final Map<String, Integer> present = inGroup.get(lcName);
 		if (present == null || present.isEmpty()){
 			removePlayer(lcName);
 			return;
 		}
-		Map<String, Boolean> permissions = getPermissions(present);
+		final Map<String, Boolean> permissions = getPermissions(present);
 		if (permissions.isEmpty()){
 			removePlayer(lcName);
 			return;
@@ -138,7 +139,7 @@ public class TransientMan {
 			attachment = null;
 		}
 		if (attachment == null){
-			Player player = Bukkit.getPlayerExact(lcName);
+			final Player player = Bukkit.getPlayerExact(lcName);
 			if (player == null) return;
 			attachment = player.addAttachment(core.getPlugin());
 			attachements.put(lcName, attachment);
@@ -147,17 +148,32 @@ public class TransientMan {
 	}
 
 	/**
-	 * @param groupNames
+	 * @param groupNames Group name to priority.
 	 * @return
 	 */
-	public Map<String, Boolean> getPermissions(Set<String> groupNames){
-		 Map<String, Boolean> permissions = new HashMap<String, Boolean>(); // number ?
-		 for (String groupName : groupNames){
-			 TransientGroup group = groups.get(groupName.toLowerCase());
-			 if (group == null) continue;
-			 permissions.putAll(group.permissions);
-		 }
-		 return permissions;
+	public final Map<String, Boolean> getPermissions(final Map<String, Integer> groupNames){
+		final Map<String, Boolean> permissions = new HashMap<String, Boolean>(40); // number ?
+		final PrioMap<String> prioPerms = new PrioMap<String>(40, 0.65f);
+		// TODO: calculate effective permissons, including conflicts.
+		for (final Entry<String, Integer> entry : groupNames.entrySet()){
+			final String groupName = entry.getKey();
+			final Integer prio = entry.getValue();
+			
+			final TransientGroup group = groups.get(groupName.toLowerCase());
+			if (group == null) continue;
+			
+			for (final Entry<String, Boolean> permEntry : group.permissions.entrySet()){
+				final String perm = permEntry.getKey();
+				final Boolean has = permEntry.getValue();
+				if (has) prioPerms.updateAdd(perm, prio);
+				else prioPerms.updateRem(perm, prio);
+			}
+		}
+		for (final Entry<String, PrioEntry> prioEntry : prioPerms.entrySet()){
+			if (prioEntry.getValue().isAdd()) permissions.put(prioEntry.getKey(), true);
+			else permissions.put(prioEntry.getKey(), false);
+		}
+		return permissions;
 	}
 
 	public void removePlayer(String playerName){
@@ -184,11 +200,11 @@ public class TransientMan {
 		updatePlayers(changed);
 	}
 
-	public void addGroup(TransientGroup group, Set<String> changed, boolean update) {
+	public final void addGroup(final TransientGroup group, final Set<String> changed, final boolean update) {
 		groups.put(group.lcName, group);
-		for (String lcName : inGroup.keySet()){
-			Set<String> present = inGroup.get(lcName);
-			if (present.contains(group.lcName)){
+		for (final String lcName : inGroup.keySet()){
+			final Map<String, Integer> present = inGroup.get(lcName);
+			if (present.containsKey(group.lcName)){
 				changed.add(lcName);
 				if (update) updatePlayer(lcName);
 			}
@@ -203,14 +219,21 @@ public class TransientMan {
 	 * @param recalculate
 	 * @return If changed, i.e. group was not present.
 	 */
-	public boolean addGroupToPlayer(String playerName, String groupName, boolean update){
-		String lcName = playerName.toLowerCase();
-		Set<String> present = inGroup.get(lcName);
+	public final boolean addGroupToPlayer(final String playerName, final String groupName, final int priority, final boolean update){
+		final String lcName = playerName.toLowerCase();
+		Map<String, Integer> present = inGroup.get(lcName);
 		if (present == null){
-			present = new HashSet<String>();
+			present = new HashMap<String, Integer>();
 			inGroup.put(lcName, present);
 		}
-		if (!present.add(groupName.toLowerCase())) return false; // already contained the group.
+		
+		final String lcGroup = groupName.toLowerCase();
+		final Integer oldPrio = present.get(lcGroup);
+		
+		if (oldPrio == null) present.put(lcGroup, priority);
+		else if (priority <= oldPrio.intValue()) return false;
+		else present.put(lcGroup, priority);
+		
 		if (update) updatePlayer(lcName);
 		return true;
 	}
@@ -223,11 +246,11 @@ public class TransientMan {
 	 * @param recalculate
 	 * @return If changed, i.e. the group was present.
 	 */
-	public boolean removeGroupFromPlayer(String playerName, String groupName, boolean update){
-		String lcName = playerName.toLowerCase();
-		Set<String> present = inGroup.get(lcName);
+	public final boolean removeGroupFromPlayer(final String playerName, final String groupName, final boolean update){
+		final String lcName = playerName.toLowerCase();
+		final Map<String, Integer> present = inGroup.get(lcName);
 		if (present == null) return false;
-		if (!present.remove(groupName.toLowerCase())) return false; // already contained the group.
+		if (present.remove(groupName.toLowerCase()) == null) return false; // already contained the group.
 		if (present.isEmpty()){
 			removePlayer(lcName);
 			return true;

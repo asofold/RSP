@@ -1,6 +1,6 @@
 package me.asofold.bpl.rsp.api.impl.bpermissions;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import me.asofold.bpl.rsp.api.IPermissionSettings;
@@ -89,7 +89,7 @@ public final class BPermUser implements IPermissionUser {
 	}
 
 	private final void fetchGroups() {
-		if (groupCache == null) groupCache = new HashSet<String>();
+		if (groupCache == null) groupCache = new LinkedHashSet<String>();
 		else groupCache.clear();
 		groupCache.addAll(user.getGroupsAsString());
 	}

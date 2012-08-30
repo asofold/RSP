@@ -48,7 +48,7 @@ public class PermDefManager {
 	 */
 	final Integer idGenericOwnership;
 	
-	public PermDefManager(RSPCore core){
+	public PermDefManager(final RSPCore core){
 		this.core = core;
 		idGenericOnline = getNewId();
 		idGenericOwnership = getNewId();
@@ -74,8 +74,8 @@ public class PermDefManager {
 	 * @param rid
 	 * @return
 	 */
-	public Integer getId(String worldName, String rid){
-		Map<String, Integer> idMap = regionIdMap.get(worldName);
+	public final Integer getId(final String worldName, final String rid){
+		final Map<String, Integer> idMap = regionIdMap.get(worldName);
 		if ( idMap == null ) return null;
 		return idMap.get(rid);
 	}
@@ -86,8 +86,8 @@ public class PermDefManager {
 	 * @param rid
 	 * @return
 	 */
-	public PermDefData getPermDefData(String worldName, String rid){
-		Integer id = getId(worldName, rid);
+	public final PermDefData getPermDefData(final String worldName, final String rid){
+		final Integer id = getId(worldName, rid);
 		if ( id == null ) return null;
 		return idDefMap.get(id);
 	}
@@ -174,7 +174,7 @@ public class PermDefManager {
 		// generic ids stay (!)
 	}
 
-	public boolean hasPermDef(String defName) {
+	public final boolean hasPermDef(final String defName) {
 		return permDefSetups.containsKey(defName);
 	}
 	

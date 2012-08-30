@@ -427,15 +427,15 @@ public class RSPCore implements IRSPCore{
 			}
 			return;
 		}
-	
-		final boolean cacheExpired = data.checkCache(lifetimeCache);
 		
-		
-		final IPermissionUser user = permissions.getUser(playerName, worldName);
+		final IPermissionUser user; 
 		boolean groupsChanged = false; // PlayerData has groups set to be applied to the permission user.
 		boolean userChanged = false; // Permission user is changed.
 		boolean prepared = false;
-		if ( cacheExpired ){
+		
+		// Check cache expiration:
+		if (data.checkCache(lifetimeCache)){
+			user = permissions.getUser(playerName, worldName);
 			if ( !data.idCache.isEmpty()){
 				user.prepare();
 				prepared = true;
@@ -445,21 +445,13 @@ public class RSPCore implements IRSPCore{
 					if (data.checkExpire(user, pd, id)) groupsChanged = true;
 				}
 			}
-			if (groupsChanged){
-				if (PermissionUtil.changeGroups(playerName, transientMan, user, data.grpAdd, data.grpRem, true, false)) userChanged = true;
-				groupsChanged = false;
-			}
 			withinLazyDist = false;
 		}
-		// ***
-		
-		if (withinLazyDist){
-			if (prepared){
-				if (userChanged) user.applyChanges();
-				else user.discardChanges();
-			}
+		else if (withinLazyDist){
+			// User can't have been changed.
 			return; // (location heuristic)
 		}
+		else user = permissions.getUser(playerName, worldName);
 		data.checkPos = new BlockPos(loc);
 		
 		final Set<Integer> active = data.idCache;
@@ -507,6 +499,11 @@ public class RSPCore implements IRSPCore{
 				}
 			}
 		} // else assert nMatched == active.size();
+		
+		// Possibly temporary workaround (__global__):
+		final Integer wGlobalId = ridIdMap.get("__global__");
+		if (wGlobalId != null && !active.contains(wGlobalId)) newIds.add(wGlobalId);
+		
 		// add perms for new ids:
 		// REGION ENTER
 		if (!newIds.isEmpty()){
@@ -523,7 +520,7 @@ public class RSPCore implements IRSPCore{
 		}
 		data.isChecked = true;
 		if (groupsChanged){
-			if (PermissionUtil.changeGroups(playerName, transientMan, user, data.grpAdd, data.grpRem, true, false)) userChanged = true;
+			if (PermissionUtil.changeGroups(playerName, transientMan, user, data.groups, true, false)) userChanged = true;
 		}
 		if (prepared){
 			if (userChanged) user.applyChanges();

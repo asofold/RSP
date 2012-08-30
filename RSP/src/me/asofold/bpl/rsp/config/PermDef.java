@@ -1,6 +1,7 @@
 package me.asofold.bpl.rsp.config;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -21,22 +22,22 @@ public class PermDef {
 	/**
 	 * Names of the permission groups that count on entering regions.
 	 */
-	public Set<String> grpAddEnter = new HashSet<String>(); // new HashSet<String>();
+	public final Set<String> grpAddEnter = new LinkedHashSet<String>();
 	
 	/**
 	 * Names of the groups that get removed on exit of regions.
 	 */
-	public Set<String> grpRemExit = new HashSet<String>();
+	public final Set<String> grpRemExit = new LinkedHashSet<String>();
 	
 	/**
 	 * Names of the permission groups that count on exiting regions.
 	 */
-	public Set<String> grpAddExit = new HashSet<String>(); // new HashSet<String>();
+	public final Set<String> grpAddExit = new LinkedHashSet<String>();
 	
 	/**
 	 * Names of the groups that get removed on entering of regions.
 	 */
-	public Set<String> grpRemEnter = new HashSet<String>();
+	public final Set<String> grpRemEnter = new LinkedHashSet<String>();
 	
 	/**
 	 * name of this Permdef.
@@ -59,12 +60,12 @@ public class PermDef {
 	/**
 	 * Call on entering a region.
 	 */
-	public List<IRegionEnter> callOnEnter = new LinkedList<IRegionEnter>();
+	public final List<IRegionEnter> callOnEnter = new LinkedList<IRegionEnter>();
 	
 	/**
 	 * Call on exit of a region.
 	 */
-	public List<IRegionExit> callOnExit = new LinkedList<IRegionExit>();
+	public final List<IRegionExit> callOnExit = new LinkedList<IRegionExit>();
 	
 	/**
 	 * 
@@ -81,9 +82,9 @@ public class PermDef {
 		return hash;
 	}
 	@Override
-	public final boolean equals(Object obj) {
+	public final boolean equals(final Object obj) {
 		if (obj instanceof PermDef ){
-			PermDef other = (PermDef) obj;
+			final PermDef other = (PermDef) obj;
 			if (hash != other.hash) return false;
 			else return defName.equals(other.defName);
 		} else return false;
@@ -118,24 +119,24 @@ public class PermDef {
 		if ( use == null ) throw new IllegalArgumentException("use must be set.");
 		switch(use){
 			case HAVE_INSIDE:
-				grpAddEnter = add(grpAddEnter, group);
-				grpRemExit = add(grpRemExit, group);
+				add(grpAddEnter, group);
+				add(grpRemExit, group);
 				break;
 			case HAVE_OUTSIDE:
-				grpAddExit = add(grpAddExit, group);
-				grpRemEnter = add(grpRemEnter, group);
+				add(grpAddExit, group);
+				add(grpRemEnter, group);
 				break;
 			case ADD_ENTER:
-				grpAddEnter = add(grpAddEnter, group);
+				add(grpAddEnter, group);
 				break;
 			case ADD_EXIT:
-				grpAddExit = add( grpAddExit, group);
+				add( grpAddExit, group);
 				break;
 			case REMOVE_ENTER:
-				grpRemEnter = add(grpRemEnter, group);
+				add(grpRemEnter, group);
 				break;
 			case REMOVE_EXIT:
-				grpRemExit = add(grpRemExit, group);
+				add(grpRemExit, group);
 			default:
 				throw new IllegalArgumentException("use '"+use+"' not yet supported !");	
 		}

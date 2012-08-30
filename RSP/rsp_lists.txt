@@ -228,6 +228,7 @@ s
 
 *** PERFORMANCE
 - !(add) a applyGroupChanges method for interfaces (add, remove) so that setGroups can be used, where available.
+? (add) index permissions ? -> rather not (potentially too many lateron). 
 
 *** BUGS
 
@@ -294,9 +295,11 @@ onGRoupChangeFailure impls.
 
 ?consider: similar to PEX: bypass the recalculate permissions thingy somehow ?
 
-? consider: add transient permissions by use of hooked plugins ? [problem onl mnakes sense if they delay recalculation or allow sets of permissions] 
 
-consider some queuing or tick task design ?
+consider some queuing or tick task design ?+
+
+
+******************* CLEANUP LISTS *****************************
 
 *** Half a permissions plugin
 
@@ -317,8 +320,6 @@ consider some queuing or tick task design ?
 
 *** Translate have-inside and have-outside to differing priorities for enter/exit
 
-*** Add priorities
-
 !(add) priorities to transient permissions handling
 
 !(add) Use priority also for group ordering (? 2 switches: ascending + how to relate to perm plugins groups).
@@ -327,15 +328,46 @@ consider some queuing or tick task design ?
 *** ? bugfix about expiraton / removal ?
 
 *** ? compat: remove / add one by one (still by calculated order) or + getGroups + setGroups
+? experimental: tick task design ?
 
+*** Check new event hierarchy (super classes).
+
+*** Config changes.
+
+*** Add something like not_inside
+
+*** "Atomic" changes/checks for permissions / permdefs / groups.
+
+*** Expiration management (...)
+
+*** Object reuse (!) -> RuntimeSet for the check routine?
+
+*** Region enter / exit, Redesign + call at end or before processing ? [1. lazy dist 2. regions 3. perms/groups 4. IRegionEnter/Exit]
 
 *** consider redesign: keep track of regions all the time.
+
+*** Redesign: Wrap all groups for Priority, set all at once each check (remove optimizations: back to full check-дь). 
+
+*** HANDLE ALL GROUPS AT ONCE, preserve order, respect priorities.
+
+? generic permdefs: ownership, membership fixed ids assign "by hand"  
+
+*** ADD transient perms to always have (__global__ permdefs allowed on world level + generic permdefs for everywhere)!
+
+*** Test / Tweak group ordering in IPermissionUser [might add: reverse order 2x + where to add new groups ?]
+
+*** Priorities should affect permission overriding as well (transient man) !
+
+use LinkedHashXY where feasible ! (all cached groups, permdefs etc.)
 
 CHANGELOG
 ----------------------------------------------------
 
 (1.1.0)
+- (add) Permdes can carry priorities now, affecting groups addition and removal as well as transient permissions.
+- (add) Allow __global__ as link for permdefs to be applied when in a world, independently of regions.
 - (add) Add SuperPerms replacing dummy perms (thus being independent of permissions plugins).
+- (tweaks) Tweaks !
 
 (1.0.0)
 - (CHANGE) Packet naming.
