@@ -16,9 +16,6 @@ import org.bukkit.permissions.PermissionAttachment;
 
 
 /**
- * TODO: change interfaces all to Set<String> changed as return value, but provide method without it.
- * TODO: decide if Set<String> makes sense at all ?
- * TODO: consider LinkedHashMaps for permissions ! (to preserve order).
  * Manager for transient permissions.<br>
  * <hr>
  * All changed players sets must be lower case names !
@@ -154,7 +151,6 @@ public class TransientMan {
 	public final Map<String, Boolean> getPermissions(final Map<String, Integer> groupNames){
 		final Map<String, Boolean> permissions = new HashMap<String, Boolean>(40); // number ?
 		final PrioMap<String> prioPerms = new PrioMap<String>(40, 0.65f);
-		// TODO: calculate effective permissons, including conflicts.
 		for (final Entry<String, Integer> entry : groupNames.entrySet()){
 			final String groupName = entry.getKey();
 			final Integer prio = entry.getValue();
