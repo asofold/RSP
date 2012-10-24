@@ -54,6 +54,8 @@ public class RSPCore implements IRSPCore{
 	private WorldGuardPlugin wg = null;
 	private RSPTriple triple = null; 
 	
+	protected int taskIdUpdateAll = -1;
+	
 	public final static Stats stats = new Stats("[RSP][STATS]");
 	public final static Integer CHECKOUT_PARK = stats.getNewId("CheckoutParked");
 	public final static Integer CHECKOUT_ALL = stats.getNewId("CheckoutAll");
@@ -169,9 +171,9 @@ public class RSPCore implements IRSPCore{
 		try{
 			res = uncheckedReloadSettings();
 			setPermissions();
+			transientMan.updateChildrenPermissions();
 			checkAllPlayers();
 			scheduleTasks();
-			
 		} catch ( Throwable t){
 			// TODO: set default settings.
 			Bukkit.getServer().getLogger().severe("[RSP] Failed to load configuration: "+t.getMessage());
@@ -825,6 +827,32 @@ public class RSPCore implements IRSPCore{
 		}
 		return res;
 	}
+	
+	/**
+	 * If scheduled (might include "already scheduled"). 
+	 * @return
+	 */
+	public boolean scheduleUpdateAll(){
+	    if (taskIdUpdateAll != -1) return true;
+	    taskIdUpdateAll = Bukkit.getScheduler().scheduleSyncDelayedTask(triple.plugin, new Runnable() {
+            @Override
+            public void run() {
+                // Security check.
+                if (triple.plugin == null || !Bukkit.getPluginManager().isPluginEnabled(triple.plugin)) return;
+                // Update permissions for all players.
+                transientMan.updateChildrenPermissions();
+                recheckAllPlayers();
+                // Finally reset the taskId.
+                taskIdUpdateAll = -1;
+                Bukkit.getLogger().info("[RSP] Updated permissions and all players.");
+            }
+        });
+	    if (taskIdUpdateAll == -1){
+	        Bukkit.getServer().getLogger().severe("[RSP] Failed to schedule updateAll task.");
+	        return false;
+	    }
+	    else return true;
+	}
 
 	/**
 	 * Force saving of permission changes.
@@ -1001,6 +1029,14 @@ public class RSPCore implements IRSPCore{
 		return pdMan.unlinkPermDef(defName, worldName, rid);
 	}
 
+    public void onAnyPluginDisabled() {
+        scheduleUpdateAll();
+    }
+
+    public void onAnyPluginEnabled() {
+        scheduleUpdateAll();
+    }
+	
 	public void onGroupChangeFailure(String userName, String worldName) {
 		// TODO Auto-generated method stub
 		

@@ -29,6 +29,7 @@ public class RSPServerListener implements Listener {
 		if (core.hasPluginHook(pluginName)){
 			core.onPluginDisabled(pluginName);
 		}
+		core.onAnyPluginDisabled();
 	}
 
 	@EventHandler(priority=EventPriority.MONITOR)
@@ -39,6 +40,7 @@ public class RSPServerListener implements Listener {
 		if (core.hasPluginHook(pluginName)){
 			core.onPluginEnabled(pluginName);
 		}
+		core.onAnyPluginEnabled();
 	}
 
 }

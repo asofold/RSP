@@ -59,6 +59,7 @@ public class RSP extends JavaPlugin{
 		getCommand("rsp").setExecutor(new RSPCommand(RSP.core));
 		// TODO: check if core is ready (no errors on con fig loading) ?
 		System.out.println(getPluginVersionString()+" is enabled.");
+		// TODO: schedule this rather.
 		core.recheckAllPlayers(); // TODO: maybe only do this if reloading config failed ! [actually then it should be disabled completely?]
 	}
 	

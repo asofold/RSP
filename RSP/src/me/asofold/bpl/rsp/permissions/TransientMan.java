@@ -12,7 +12,9 @@ import me.asofold.bpl.rsp.core.RSPCore;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionAttachment;
+import org.bukkit.plugin.PluginManager;
 
 
 /**
@@ -23,21 +25,26 @@ import org.bukkit.permissions.PermissionAttachment;
  *
  */
 public class TransientMan {
+    
+    /**
+     * Map permissions to its child nodes.
+     */
+    private final Map<String, Map<String, Boolean>> childrenPermissions = new HashMap<String,  Map<String, Boolean>>(300);
 	
 	/**
 	 * Map lower case group names to groups.
 	 */
-	private final Map<String, TransientGroup> groups = new HashMap<String, TransientGroup>(100);
+	private final Map<String, TransientGroup> groups = new HashMap<String, TransientGroup>(50);
 	
 	/**
 	 * Map lower case player names to PermissionAttachments.
 	 */
-	private final Map<String, PermissionAttachment> attachements = new HashMap<String, PermissionAttachment>();
+	private final Map<String, PermissionAttachment> attachements = new HashMap<String, PermissionAttachment>(50);
 	
 	/**
 	 * Map lower case player names to Map of lower case group names mapping to priorities (Integer).
 	 */
-	private final Map<String, Map<String, Integer>> inGroup = new HashMap<String, Map<String, Integer>>();
+	private final Map<String, Map<String, Integer>> inGroup = new HashMap<String, Map<String, Integer>>(50);
 	
 	private final RSPCore core;
 	
@@ -159,10 +166,21 @@ public class TransientMan {
 			if (group == null) continue;
 			
 			for (final Entry<String, Boolean> permEntry : group.permissions.entrySet()){
+			    // Update the permission state.
 				final String perm = permEntry.getKey();
 				final Boolean has = permEntry.getValue();
 				if (has) prioPerms.updateAdd(perm, prio);
 				else prioPerms.updateRem(perm, prio);
+				// Update child permissions.
+				final Map<String, Boolean> childPerms = childrenPermissions.get(perm);
+                if (childPerms != null) {
+                    for (final Entry<String, Boolean> childEntry : childPerms.entrySet()) {
+                        final String childPerm = childEntry.getKey();
+                        final Boolean hasChild = childEntry.getValue();
+                        if (hasChild) prioPerms.updateAdd(childPerm, prio);
+                        else prioPerms.updateRem(childPerm, prio);
+                    }
+                }
 			}
 		}
 		for (final Entry<String, PrioEntry> prioEntry : prioPerms.entrySet()){
@@ -258,4 +276,44 @@ public class TransientMan {
 	public final boolean isTransient(String groupName){
 		return groups.containsKey(groupName.toLowerCase());
 	}
+	
+	/**
+	 * Update children-permissions cache.
+	 */
+	public void updateChildrenPermissions(){
+	    childrenPermissions.clear();
+	    for (final Permission perm : Bukkit.getPluginManager().getPermissions()){
+	        final String name = perm.getName();
+	        final Map<String, Boolean> children = new HashMap<String, Boolean>(20);
+	        addChildPerms(children, perm.getChildren());
+	        childrenPermissions.put(name, children);
+	    }
+	}
+
+	/**
+	 * Add children permissions (recursively) to the map. Conflicts: positive perm overwrites negative perm.
+	 * @param children Update entries of this map.
+	 * @param childrenUpdates Update with entries from this map, recursively.
+	 */
+    private void addChildPerms(final Map<String, Boolean> children, final Map<String, Boolean> childrenUpdates) {
+        // TODO call from reload, plugin disable / enable, further events ?.
+        final PluginManager pm = Bukkit.getPluginManager();
+        for (final Entry<String, Boolean> entry : childrenUpdates.entrySet()){
+            final String childName = entry.getKey();
+            final Boolean oldValue = children.get(childName);
+            final Boolean value = entry.getValue();
+            if (value == null) continue;
+            if (oldValue != null){
+                // only update false by true.
+                if (oldValue.booleanValue()) continue;
+                else if (!value.booleanValue()) continue;
+                // else overwrite.
+            }
+            children.put(childName, value);
+            final Permission perm = pm.getPermission(childName);
+            if (perm == null) continue;
+            final Map<String, Boolean> childrenRecursive = perm.getChildren();
+            if (childrenRecursive != null && !childrenRecursive.isEmpty()) addChildPerms(children, childrenRecursive);
+        }
+    }
 }

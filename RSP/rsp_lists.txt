@@ -2,6 +2,10 @@
 RSP lists
 --------------------
 
+
+!!! more list cleanup ...
+
+
 PLANNED / QUESTIOSN
 -----------------------------
 
@@ -298,11 +302,15 @@ onGRoupChangeFailure impls.
 
 consider some queuing or tick task design ?+
 
+actually: add confining players to a set of regions ? [probably needs persisting fallback tp positions?]
+
+consider: decorating group sets for ranks ? [maybe for context manager for mixin prefixes]
 
 ******************* CLEANUP LISTS *****************************
 
 *** Half a permissions plugin
 
+? add option like "insert-groups", to not add to end but insert to front.
 
 *** sophisticated caching ?
 
@@ -336,7 +344,7 @@ consider some queuing or tick task design ?+
 
 *** Add something like not_inside
 
-*** "Atomic" changes/checks for permissions / permdefs / groups.
+*** "Atomic" changes/checks for permissions / permdefs / groups. [check: is already the case more or less, might put exit/enter calls after manipulations.]
 
 *** Expiration management (...)
 
@@ -346,25 +354,55 @@ consider some queuing or tick task design ?+
 
 *** consider redesign: keep track of regions all the time.
 
-*** Redesign: Wrap all groups for Priority, set all at once each check (remove optimizations: back to full check-дь). 
-
 *** HANDLE ALL GROUPS AT ONCE, preserve order, respect priorities.
 
-? generic permdefs: ownership, membership fixed ids assign "by hand"  
-
-*** ADD transient perms to always have (__global__ permdefs allowed on world level + generic permdefs for everywhere)!
+? generic permdefs: ownership, membership fixed ids assign "by hand", + maybe everywhere
 
 *** Test / Tweak group ordering in IPermissionUser [might add: reverse order 2x + where to add new groups ?]
 
-*** Priorities should affect permission overriding as well (transient man) !
+exempt till next server tick or for a number of ticks ? [simlar to ms count though ..]
 
-use LinkedHashXY where feasible ! (all cached groups, permdefs etc.)
+*** Other time measurement than ms: server ticks + count in lag (tick task) !
+
+? add lazy-dist per player
+
+! tweak confinement code !
+
+? add permissions to permdefs / group use ?
+
+might have to use player login event for permission setting!
+
+? Add API + hooks for like vanish plugins to add permissions depending vanish state etc. [hooks => events, bind: eventname: permdefs]
+
+removePermsById: check: maybe add an update flag ?
+
+
+
+consider: perm op defaults etc, allow overriding by config?
+
+
+*** Region independence ?
++ Allow defining zones (file + ingame) mixing them in with worldguard ?
++ 2d zones ?
++ interchangeable region definition use worldedit or own way to define (!)
+
+*** More concept for full perm plugin
+!rich group definitions in extra files with inheritance concepts !
+
+*** Permissions checking:
+? Add inspection command to inspect permissions of a player / group / ... also to show info about permfdefs priorities if from plugin or not.
+! add hasperm commmand (rsp haqsperm or hasperm)
+
+
+*** More fully superperms support.
+-> does not fully work if the parent nodes are included as well...
+!Add all child permissions recursively for a certain node (!).
 
 CHANGELOG
 ----------------------------------------------------
 
 (1.1.0)
-- (add) Permdes can carry priorities now, affecting groups addition and removal as well as transient permissions.
+- (add) Permdefs can carry priorities now, affecting groups addition and removal as well as transient permissions.
 - (add) Allow __global__ as link for permdefs to be applied when in a world, independently of regions.
 - (add) Add SuperPerms replacing dummy perms (thus being independent of permissions plugins).
 - (tweaks) Tweaks !
