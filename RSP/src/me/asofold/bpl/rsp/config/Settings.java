@@ -123,8 +123,6 @@ public class Settings {
 		cfg.set("create-portals", ref.createPortals);
 		cfg.set("errors.log.min-delay", ref.minDelayLogFrequent);
 		cfg.set("load-plugins", new LinkedList<String>());
-		cfg.set("generic-links.online", new LinkedList<String>());
-		cfg.set("generic-links.ownership", new LinkedList<String>());
 		return cfg;
 	}
 
