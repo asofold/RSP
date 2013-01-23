@@ -63,9 +63,10 @@ public class RSPPlayerListener implements Listener{
 
 	@EventHandler(priority=EventPriority.MONITOR)
 	final void onPlayerJoin(final PlayerJoinEvent event) {
-		// TODO: maybe switch to another way ( check if needs deep re-check).
+		// TODO: maybe switch to another way (check if needs deep re-check).
+		// TODO: How about checking the bounds here?
 		final Player player = event.getPlayer();
-		if ( useStats){
+		if (useStats){
 			final long ts = System.nanoTime();
 			core.checkJoin(player.getName(), player.getLocation());
 			RSPCore.stats.addStats(RSPCore.PLAYER_JOIN, System.nanoTime()-ts);
@@ -216,12 +217,13 @@ public class RSPPlayerListener implements Listener{
 	final void onPlayerTeleportLow(final PlayerTeleportEvent event) {
 		if ( event.isCancelled()) return;
 		final Location to = event.getTo();
-		if (to == null){
-			final Location from = event.getFrom();
-			if (from != null && !core.isWithinBounds(from)) event.setCancelled(true);
-			core.logSevere(RSPError.NULL_LOCATION, "teleport(to): "+event.getPlayer().getName());
+		if (to != null){
+			if (!core.isWithinBounds(to)) event.setCancelled(true);
 		}
-		else if ( !core.isWithinBounds(to)) event.setCancelled(true);
+//		else{
+//			final Location from = event.getFrom();
+//			if (from != null && !core.isWithinBounds(from)) event.setCancelled(true);
+//		}
 	}
 
 	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled = true)
