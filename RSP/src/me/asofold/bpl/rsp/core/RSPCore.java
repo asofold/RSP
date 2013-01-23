@@ -388,13 +388,13 @@ public class RSPCore implements IRSPCore{
 	public final void check(final String playerName, final Location loc) {// Player player, Location loc) {
 //		String playerName = player.getName();
 		// TODO: cleanup for speed !
-		if ( loc == null ){ // TODO: SUBJECT TO REMOVAL -> RATHER NOT :)
+		if (loc == null ){ // TODO: SUBJECT TO REMOVAL -> RATHER NOT :)
 			checkout(playerName, false);
 			logSevere(RSPError.NULL_LOCATION, "check: " + playerName);
 			return;
 		}
 		final World world = loc.getWorld();
-		if ( world == null) { // TODO: SUBJECT TO REMOVAL
+		if (world == null) { // TODO: SUBJECT TO REMOVAL
 			checkout(playerName, false);
 			logSevere(RSPError.NULL_WORLD, "check: " + playerName);
 			return;
@@ -404,8 +404,9 @@ public class RSPCore implements IRSPCore{
 		WorldSettings settings = worlds.get(worldName);
 		if (settings == null) settings = defaults;
 		boolean withinLazyDist = false;
-		if ( data.checkPos!=null) withinLazyDist = !data.checkPos.setOnDist(loc, settings.lazyDist);
+		if (data.checkPos != null) withinLazyDist = !data.checkPos.setOnDist(loc, settings.lazyDist);
 		if (settings.confine && !withinLazyDist){
+			// TODO: This might keep permissions, which are meant to be removed. [Might add some abuse protection, checkout on abuse.]
 			if (!Confinement.checkConfinement(settings, data, loc) ) return;
 		}
 		if ( wg == null){ // TODO: SUBJECT TO REMOVAL (?)
@@ -443,7 +444,7 @@ public class RSPCore implements IRSPCore{
 				prepared = true;
 				for ( Integer id : data.idCache ){
 					final PermDefData pd = pdMan.idDefMap.get(id);
-					if ( pd == null ) continue; // TODO: maybe remove (contract	).
+					if (pd == null) continue; // TODO: maybe remove (contract	).
 					if (data.checkExpire(user, pd, id)) groupsChanged = true;
 				}
 			}
@@ -465,7 +466,9 @@ public class RSPCore implements IRSPCore{
 		int nMatched = 0;
 		final List<Integer> newIds = new LinkedList<Integer>();
 		final Set<Integer> matched = new HashSet<Integer>();
-		for (ProtectedRegion region : set){
+		boolean owner = false;
+		boolean member = false;
+		for (final ProtectedRegion region : set){
 			final String rid = region.getId();
 			final Integer id = ridIdMap.get(rid);
 			if (id != null){
@@ -476,7 +479,66 @@ public class RSPCore implements IRSPCore{
 					newIds.add(id);
 				}
 			} // else: ignore this region.
+			// Generic checks:
+			// TODO: Currently both are checked, to allow distinction by filter-perm.
+			if (region.isOwner(playerName)) owner = true;
+			if (region.isMember(playerName)) member = true;
 		}
+		
+		// Generic ids ---
+		// __global__: Everywhere.
+		final Integer wGlobalId = ridIdMap.get("__global__");
+		if (wGlobalId != null){
+			if (active.contains(wGlobalId)){
+				nMatched ++;
+				matched.add(wGlobalId);
+			}
+			else{
+				newIds.add(wGlobalId);
+			}
+		}
+		// __owner__: Region owners.
+		if (owner){
+			final Integer wOwnerId = ridIdMap.get("__owner__");
+			if (wOwnerId != null){
+				if (active.contains(wOwnerId)){
+					nMatched ++;
+					matched.add(wOwnerId);
+				}
+				else{
+					newIds.add(wOwnerId);
+				}
+			}
+		}
+		// __member__: Region members.
+		if (member){
+			final Integer wMemberId = ridIdMap.get("__member__");
+			if (wMemberId != null){
+				if (active.contains(wMemberId)){
+					nMatched ++;
+					matched.add(wMemberId);
+				}
+				else{
+					newIds.add(wMemberId);
+				}
+			}
+		}
+		// __region__: Players on regions.
+		if (set.size() > 0){
+			final Integer wRegionId = ridIdMap.get("__region__");
+			if (wRegionId != null){
+				if (active.contains(wRegionId)){
+					nMatched ++;
+					matched.add(wRegionId);
+				}
+				else{
+					newIds.add(wRegionId);
+				}
+			}
+		}
+		
+		// Check for ids to remove ---
+		
 		if ( nMatched < nActive ){ // TODO: consistency of this with PermDefdata guaranteed?
 			// REGION EXIT
 			// needs adjustment ("complicated") !
@@ -502,21 +564,17 @@ public class RSPCore implements IRSPCore{
 			}
 		} // else assert nMatched == active.size();
 		
-		// Possibly temporary workaround (__global__):
-		final Integer wGlobalId = ridIdMap.get("__global__");
-		if (wGlobalId != null && !active.contains(wGlobalId)) newIds.add(wGlobalId);
-		
 		// add perms for new ids:
-		// REGION ENTER
+		// REGION ENTER [def eneter, actually]
 		if (!newIds.isEmpty()){
 			if (!prepared){
 				user.prepare();
 				prepared = true;
 			}
-			for ( Integer id : newIds){
+			for (Integer id : newIds){
 				final PermDefData defs = pdMan.idDefMap.get(id);
-				if ( defs == null) continue; // TODO: internal error.
-				if ( data.checkEnter(user, defs, id)) groupsChanged = true;
+				if (defs == null) continue; // TODO: internal error.
+				if (data.checkEnter(user, defs, id)) groupsChanged = true;
 				// TODO: also add others ?
 			}
 		}
