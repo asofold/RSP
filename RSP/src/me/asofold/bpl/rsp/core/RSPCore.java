@@ -1,6 +1,7 @@
 package me.asofold.bpl.rsp.core;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -69,7 +70,11 @@ public class RSPCore implements IRSPCore{
 	public final static Integer PLAYER_RESPAWN = stats.getNewId("CheckRespawn");
 	public final static Integer PLAYER_TELEPORT = stats.getNewId("CheckTeleport");
 	
-	final Map<String, PlayerData> playerData = new HashMap<String, PlayerData>();	
+	final Map<String, PlayerData> playerData = new HashMap<String, PlayerData>();
+	
+	private final Set<String> reservedRids = new HashSet<String>(Arrays.asList(new String[]{
+			"__global__", "__owner__", "__member__", "__region__"
+	}));
 		
 	/**
 	 * General world-specific settings.
@@ -470,6 +475,7 @@ public class RSPCore implements IRSPCore{
 		boolean member = false;
 		for (final ProtectedRegion region : set){
 			final String rid = region.getId();
+			if (reservedRids.contains(rid)) continue;
 			final Integer id = ridIdMap.get(rid);
 			if (id != null){
 				if (active.contains(id)){
