@@ -3,7 +3,6 @@ package me.asofold.bpl.rsp.listeners;
 import me.asofold.bpl.rsp.config.WorldSettings;
 import me.asofold.bpl.rsp.core.Confinement;
 import me.asofold.bpl.rsp.core.RSPCore;
-import me.asofold.bpl.rsp.core.RSPError;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -75,9 +74,8 @@ public class RSPPlayerListener implements Listener{
 		}
 	}
 
-	@EventHandler(priority=EventPriority.MONITOR)
+	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled = true)
 	final void onPlayerKick(final PlayerKickEvent event) {
-		if ( event.isCancelled()) return;
 		core.park(event.getPlayer().getName());
 	}
 	
@@ -86,9 +84,8 @@ public class RSPPlayerListener implements Listener{
 		core.park(event.getPlayer().getName());
 	}
 
-	@EventHandler(priority=EventPriority.MONITOR)
+	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled = false)
 	final void onPlayerMove(final PlayerMoveEvent event) {
-		if ( event.isCancelled()) return;
 		final Location ref = event.isCancelled() ? event.getFrom() : event.getTo();
 		if ( useStats){
 			final long ts = System.nanoTime();
@@ -99,13 +96,13 @@ public class RSPPlayerListener implements Listener{
 		}
 	}
 	
-	@EventHandler(priority=EventPriority.LOWEST)
+	@EventHandler(priority=EventPriority.LOWEST, ignoreCancelled = true)
 	final void onVehicleMove(final VehicleMoveEvent event){
 		final Vehicle vehicle = event.getVehicle();
 		final Entity entity = vehicle.getPassenger();
-		if ( entity == null) return;
-		if ( !(entity instanceof Player) ) return;
-		if ( !core.isWithinBounds(entity.getLocation())){
+		if (entity == null) return;
+		if (!(entity instanceof Player)) return;
+		if (!core.isWithinBounds(entity.getLocation())){
 			((Player) entity).leaveVehicle();
 			vehicle.setPassenger(null);
 			final Vector v = new Vector(0,0,0);
@@ -114,19 +111,17 @@ public class RSPPlayerListener implements Listener{
 		}
 	}
 	
-	@EventHandler(priority=EventPriority.LOW)
+	@EventHandler(priority=EventPriority.LOW, ignoreCancelled = true)
 	final void onVehicleEnterLow(final VehicleEnterEvent event){
-		if ( event.isCancelled() ) return;
-		if ( event.getEntered() instanceof Player){
+		if (event.getEntered() instanceof Player){
 			if ( !core.isWithinBounds(event.getVehicle().getLocation())){
 				event.setCancelled(true);
 			}
 		}
 	}
 	
-	@EventHandler(priority=EventPriority.MONITOR)
+	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled = true)
 	final void onVehicleEnter(final VehicleEnterEvent event){
-		if ( event.isCancelled() ) return;
 		final Entity entity = event.getEntered();
 		if ( entity instanceof Player){
 			if ( useStats){
@@ -139,9 +134,8 @@ public class RSPPlayerListener implements Listener{
 		}
 	}
 	
-	@EventHandler(priority=EventPriority.MONITOR)
+	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled = true)
 	final void onVehicleExit(VehicleExitEvent event){
-		if ( event.isCancelled() ) return;
 		final Entity entity = event.getExited();
 		if ( entity instanceof Player){
 			if ( useStats){
@@ -154,12 +148,11 @@ public class RSPPlayerListener implements Listener{
 		}
 	}
 	
-	@EventHandler(priority=EventPriority.LOW)
+	@EventHandler(priority=EventPriority.LOW, ignoreCancelled = true)
 	final void onPlayerPortalLow(final PlayerPortalEvent event) {
-		if (event.isCancelled()) return;
 		final Location to = event.getTo();
-		if ( to == null ) return;
-		WorldSettings sTo = core.getSettings(to.getWorld().getName());
+		if (to == null ) return;
+		final WorldSettings sTo = core.getSettings(to.getWorld().getName());
 		if (!sTo.confine) return;
 		if (event.useTravelAgent()){
 			try{
@@ -167,16 +160,16 @@ public class RSPPlayerListener implements Listener{
 				final double d = Confinement.distance(sTo, to);
 				final TravelAgent ta = event.getPortalTravelAgent();
 				final int sr = ta.getSearchRadius();
-				if (d<sTo.cR-sr) return; // simply allow.
-				else if (d>sTo.cR+sr){ // just deny.
+				if (d < sTo.cR - sr) return; // simply allow.
+				else if (d > sTo.cR + sr){ // just deny.
 					event.setCancelled(true);
 					return;
 				}
 				Location target = ta.findPortal(to);
-				if ( (target==null) && ta.getCanCreatePortal() && core.getCreatePortals()) target = ta.findOrCreate(to);
-				if ( target != null){
-					if ( !core.isWithinBounds(target) ) event.setCancelled(true);
-				} else if (!Confinement.isWithinBounds(sTo,  to)) event.setCancelled(true);
+				if ((target == null) && ta.getCanCreatePortal() && core.getCreatePortals()) target = ta.findOrCreate(to);
+				if (target != null){
+					if (!core.isWithinBounds(target)) event.setCancelled(true);
+				} else if (!Confinement.isWithinBounds(sTo, to)) event.setCancelled(true);
 			} catch (Throwable t){
 				event.setCancelled(true);
 			}
@@ -184,17 +177,17 @@ public class RSPPlayerListener implements Listener{
 		else if (!Confinement.isWithinBounds(sTo,  to)) event.setCancelled(true);
 	}
 
-	@EventHandler(priority=EventPriority.MONITOR)
+	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled = true)
 	final void onPlayerPortal(final PlayerPortalEvent event) {
-		// TODO: maybe this should be removed !
-		if ( event.isCancelled()) return;
-		if ( event.getTo() == null ) return;
-		if ( useStats){
+		// TODO: maybe this should be removed ! <- which "this" ?
+		final Location to = event.getTo();
+		if (to == null) return;
+		if (useStats){
 			long ts = System.nanoTime();
-			core.check(event.getPlayer().getName(), event.getTo());
+			core.check(event.getPlayer().getName(), to);
 			RSPCore.stats.addStats(RSPCore.PLAYER_PORTAL, System.nanoTime()-ts);
 		} else{
-			core.check(event.getPlayer().getName(), event.getTo());
+			core.check(event.getPlayer().getName(), to);
 		}
 	}
 
@@ -213,13 +206,13 @@ public class RSPPlayerListener implements Listener{
 		}
 	}
 	
-	@EventHandler(priority=EventPriority.LOW)
+	@EventHandler(priority=EventPriority.LOW, ignoreCancelled = true)
 	final void onPlayerTeleportLow(final PlayerTeleportEvent event) {
-		if ( event.isCancelled()) return;
 		final Location to = event.getTo();
 		if (to != null){
 			if (!core.isWithinBounds(to)) event.setCancelled(true);
 		}
+		// (If checking from, also teleport soon.)
 //		else{
 //			final Location from = event.getFrom();
 //			if (from != null && !core.isWithinBounds(from)) event.setCancelled(true);
@@ -228,7 +221,6 @@ public class RSPPlayerListener implements Listener{
 
 	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled = true)
 	final void onPlayerTeleport(final PlayerTeleportEvent event) {
-		if ( event.isCancelled()) return;
 		final Location to = event.getTo();
 		if (to == null) return;
 		if (useStats){
