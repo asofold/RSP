@@ -88,12 +88,13 @@ public class RSPPlayerListener implements Listener{
 	@EventHandler(priority=EventPriority.MONITOR)
 	final void onPlayerMove(final PlayerMoveEvent event) {
 		if ( event.isCancelled()) return;
+		final Location ref = event.isCancelled() ? event.getFrom() : event.getTo();
 		if ( useStats){
 			final long ts = System.nanoTime();
-			core.check(event.getPlayer().getName(), event.getTo());
+			core.check(event.getPlayer().getName(), ref);
 			RSPCore.stats.addStats(RSPCore.PLAYER_MOVE, System.nanoTime()-ts);
 		} else{
-			core.check(event.getPlayer().getName(), event.getTo());
+			core.check(event.getPlayer().getName(), ref);
 		}
 	}
 	
