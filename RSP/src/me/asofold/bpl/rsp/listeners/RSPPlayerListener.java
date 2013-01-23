@@ -224,15 +224,17 @@ public class RSPPlayerListener implements Listener{
 		else if ( !core.isWithinBounds(to)) event.setCancelled(true);
 	}
 
-	@EventHandler(priority=EventPriority.MONITOR)
+	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled = true)
 	final void onPlayerTeleport(final PlayerTeleportEvent event) {
 		if ( event.isCancelled()) return;
-		if ( useStats){
+		final Location to = event.getTo();
+		if (to == null) return;
+		if (useStats){
 			final long ts = System.nanoTime();
-			core.check(event.getPlayer().getName(), event.getTo());
+			core.check(event.getPlayer().getName(), to);
 			RSPCore.stats.addStats(RSPCore.PLAYER_TELEPORT, System.nanoTime()-ts);
 		} else{
-			core.check(event.getPlayer().getName(), event.getTo());
+			core.check(event.getPlayer().getName(), to);
 		}
 	}
 	
