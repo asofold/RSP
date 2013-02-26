@@ -6,6 +6,8 @@ import me.asofold.bpl.rsp.core.RSPCore;
 import me.asofold.bpl.rsp.core.RSPTriple;
 import me.asofold.bpl.rsp.listeners.RSPPlayerListener;
 import me.asofold.bpl.rsp.listeners.RSPServerListener;
+import me.asofold.bpl.rsp.plshared.Players;
+import me.asofold.bpl.rsp.plshared.players.OnlinePlayerMap;
 
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -34,6 +36,9 @@ public class RSP extends JavaPlugin{
 	public void onDisable() {
 		core.clearAllPermDefs(); // does checkout and save
 		core.setWG(); // TODO: set to null ?
+		// Clear player mapping.
+		((OnlinePlayerMap) Players.getOnlinePlayerMap()).clear();
+		// Done.
 		System.out.println(getPluginVersionString()+" is disabled.");
 	}
 
@@ -59,6 +64,12 @@ public class RSP extends JavaPlugin{
 		getCommand("rsp").setExecutor(new RSPCommand(RSP.core));
 		// TODO: check if core is ready (no errors on con fig loading) ?
 		System.out.println(getPluginVersionString()+" is enabled.");
+		
+		// Set up player mapping.
+		OnlinePlayerMap onlineMap = (OnlinePlayerMap) Players.getOnlinePlayerMap();
+		onlineMap.initWithOnlinePlayers();
+		onlineMap.registerOnlinePlayerListener(this);
+				
 		// TODO: schedule this rather.
 		core.recheckAllPlayers(); // TODO: maybe only do this if reloading config failed ! [actually then it should be disabled completely?]
 	}

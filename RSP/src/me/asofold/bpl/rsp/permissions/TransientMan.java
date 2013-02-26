@@ -9,6 +9,7 @@ import java.util.Set;
 
 import me.asofold.bpl.rsp.config.compatlayer.CompatConfig;
 import me.asofold.bpl.rsp.core.RSPCore;
+import me.asofold.bpl.rsp.plshared.Players;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -143,7 +144,7 @@ public class TransientMan {
 			attachment = null;
 		}
 		if (attachment == null){
-			final Player player = Bukkit.getPlayerExact(lcName);
+			final Player player = Players.getPlayerExact(lcName);
 			if (player == null) return;
 			attachment = player.addAttachment(core.getPlugin());
 			attachements.put(lcName, attachment);

@@ -3,6 +3,8 @@ package me.asofold.bpl.rsp.tasks;
 import java.util.LinkedList;
 import java.util.List;
 
+import me.asofold.bpl.rsp.plshared.Players;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -33,7 +35,7 @@ public class PingTask implements Runnable{
 	public void run() {
 		if (taskId == -1) return;
 		try{
-			Player player = Bukkit.getServer().getPlayerExact(playerName);
+			Player player =  Players.getPlayerExact(playerName);
 			if (player == null) {
 				cancel();
 				return;

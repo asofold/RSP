@@ -5,8 +5,8 @@ import java.util.Set;
 
 import me.asofold.bpl.rsp.api.IPermissionSettings;
 import me.asofold.bpl.rsp.api.IPermissionUser;
+import me.asofold.bpl.rsp.plshared.Players;
 
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import ru.tehkode.permissions.PermissionGroup;
@@ -33,7 +33,7 @@ public final class PexPermUser implements IPermissionUser {
 		this.player = player;
 		this.world = world;
 		
-		bp = Bukkit.getPlayerExact(player);
+		bp = Players.getPlayerExact(player);
 	}
 
 	@Override

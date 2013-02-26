@@ -21,7 +21,7 @@ public final class DelayedTeleport implements Runnable {
 
 	@Override
 	public void run() {
-		final Player player = Bukkit.getServer().getPlayerExact(playerName);
+		final Player player = Bukkit.getServer().getPlayer(playerName);
 		if ( player != null ){
 			player.setVelocity(new org.bukkit.util.Vector(0,0,0));
 			player.teleport(loc, TeleportCause.PLUGIN);

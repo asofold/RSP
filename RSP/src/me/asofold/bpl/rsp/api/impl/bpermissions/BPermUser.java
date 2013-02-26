@@ -5,8 +5,8 @@ import java.util.Set;
 
 import me.asofold.bpl.rsp.api.IPermissionSettings;
 import me.asofold.bpl.rsp.api.IPermissionUser;
+import me.asofold.bpl.rsp.plshared.Players;
 
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import de.bananaco.bpermissions.api.User;
@@ -41,7 +41,7 @@ public final class BPermUser implements IPermissionUser {
 		if ( pW == null ) throw new RuntimeException("rsp - Invalid world: "+world);
 		user = pW.getUser(player);
 		if (user == null) throw new RuntimeException("rsp - Failed to get user '"+player+"' for world '"+world+"'.");
-		bp = Bukkit.getPlayerExact(player);
+		bp = Players.getPlayerExact(player);
 	}
 
 	@Override

@@ -5,9 +5,9 @@ import java.util.Set;
 
 import me.asofold.bpl.rsp.api.IPermissionSettings;
 import me.asofold.bpl.rsp.api.IPermissionUser;
+import me.asofold.bpl.rsp.plshared.Players;
 import net.milkbowl.vault.permission.Permission;
 
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public final class VaultPermsUser implements IPermissionUser {
@@ -30,7 +30,7 @@ public final class VaultPermsUser implements IPermissionUser {
 		else this.world = world;
 		// use worlds:
 		useWorlds = settings.getUseWorlds();
-		bp = Bukkit.getPlayerExact(player);
+		bp = Players.getPlayerExact(player);
 	}
 
 	@Override

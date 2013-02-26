@@ -2,6 +2,7 @@ package me.asofold.bpl.rsp.core;
 
 import me.asofold.bpl.rsp.RSP;
 import me.asofold.bpl.rsp.config.WorldSettings;
+import me.asofold.bpl.rsp.plshared.Players;
 import me.asofold.bpl.rsp.tasks.DelayedTeleport;
 
 import org.bukkit.Bukkit;
@@ -61,7 +62,7 @@ public class Confinement {
 	 * @return
 	 */
 	public static final boolean restoreConfinement(final WorldSettings settings, final PlayerData data, final Location loc){
-		final Player player = Bukkit.getServer().getPlayerExact(data.playerName);
+		final Player player = Players.getPlayerExact(data.playerName);
 		if ( player == null) return true; // TODO: special case.
 		Location tpLoc = null;
 		if ( settings.useLastLocation){

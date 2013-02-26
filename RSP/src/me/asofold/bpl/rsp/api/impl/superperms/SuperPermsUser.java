@@ -1,8 +1,8 @@
 package me.asofold.bpl.rsp.api.impl.superperms;
 
 import me.asofold.bpl.rsp.api.IPermissionUser;
+import me.asofold.bpl.rsp.plshared.Players;
 
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public final class SuperPermsUser implements IPermissionUser {
@@ -22,7 +22,7 @@ public final class SuperPermsUser implements IPermissionUser {
 	 * @return If player present.
 	 */
 	private final boolean setPlayer(){
-		player = Bukkit.getPlayerExact(playerName);
+		player = Players.getPlayerExact(playerName);
 		return player != null;
 	}
 
