@@ -100,7 +100,6 @@ public class Settings {
 	 */
 	public List<ConfigPermDef> configPermDefs = new LinkedList<ConfigPermDef>();
 	public List<Link> links = new LinkedList<Link>();
-	public Map<LinkType, List<String>> genericLinks = new HashMap<LinkType, List<String>>();
 	
 	
 	public static MemoryConfiguration getDefaultConfiguration(){
@@ -188,13 +187,6 @@ public class Settings {
 			}
 		}
 		
-		// Generic permdef links
-		for (LinkType linkType: new  LinkType[]{LinkType.ONLINE, LinkType.OWNERHIP}){
-			List<String> gen = cfg.getStringList("generic-links."+linkType.toString().toLowerCase(), null); 
-			if (gen != null){
-				settings.genericLinks.put(linkType, gen);
-			}
-		}
 		return settings;
 	}
 

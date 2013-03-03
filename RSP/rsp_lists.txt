@@ -411,4 +411,5 @@ consider: generic names configurable ? (__global__, __owner__, __member__) ?canb
 consider: replace-schema for permissions ([rid] to be replaced by the region id).
 
 ***
-Removal of generic groups
+
+

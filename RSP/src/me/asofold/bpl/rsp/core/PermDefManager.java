@@ -9,13 +9,11 @@ import me.asofold.bpl.rsp.api.IPermissionUser;
 import me.asofold.bpl.rsp.api.IPermissions;
 import me.asofold.bpl.rsp.api.impl.superperms.SuperPerms;
 import me.asofold.bpl.rsp.config.ConfigPermDef;
-import me.asofold.bpl.rsp.config.LinkType;
 import me.asofold.bpl.rsp.config.PermDef;
 import me.asofold.bpl.rsp.config.PermDefType;
 import me.asofold.bpl.rsp.config.Settings;
 import me.asofold.bpl.rsp.config.Settings.Link;
 import me.asofold.bpl.rsp.utils.StringPair;
-import me.asofold.bpl.rsp.utils.Utils;
 
 import org.bukkit.Bukkit;
 
@@ -105,23 +103,6 @@ public class PermDefManager {
 					linkPermDef(defName, link.world, link.rid);
 				} catch (Throwable t){
 					Bukkit.getServer().getLogger().warning("[RSP] Ignore link ("+link.world+", "+link.rid+") to PermDef "+defName+" due to an unexpected error.");
-					t.printStackTrace();
-				}
-			}
-		}
-		// Generic permdef links
-		for (LinkType linkType: new  LinkType[]{LinkType.ONLINE, LinkType.OWNERHIP}){
-			List<String> gen = settings.genericLinks.get(linkType);
-			if (gen == null) continue;
-			for (String defName : gen){
-				if ( !permDefSetups.containsKey(defName)){
-					Bukkit.getServer().getLogger().warning("[RSP] Ignore link ("+linkType+") to non existent PermDef "+defName);
-					continue;
-				}
-				try{
-					linkPermDef(defName, linkType);
-				} catch (Throwable t){
-					Bukkit.getServer().getLogger().warning("[RSP] Ignore link ("+linkType+") to PermDef "+defName+" due to an unexpected error.");
 					t.printStackTrace();
 				}
 			}
@@ -288,32 +269,5 @@ public class PermDefManager {
 		}
 		return res;
 	}
-	
-	/**
-	 * Generic links.
-	 * @param defName
-	 * @param linkType
-	 */
-	public void linkPermDef(String defName, LinkType linkType) {
-		final Integer id;
-		switch(linkType){
-		case ONLINE:
-			id = idGenericOnline;
-			break;
-		case OWNERHIP:
-			id = idGenericOwnership;
-			break;
-		default: 
-			Utils.warn("Unsupported link-type: ["+linkType+"/"+defName+"]");
-			return;
-		}
-		PermDefData data = idDefMap.get(id);
-		if (data == null){
-			// TODO: create new one
-		}
-		// TODO: add [TODO: add to PermDefData: already linked.]
-		Utils.warn("Generic links are not supported prior to RSP 1.0: ["+linkType+"/"+defName+"]");
-	}
-	
-	
+
 }
