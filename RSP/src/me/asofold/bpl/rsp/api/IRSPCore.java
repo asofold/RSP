@@ -85,5 +85,18 @@ public interface IRSPCore {
 	 * @return Will return true, if there is no confinement for a world.
 	 */
 	public boolean isWithinBounds(Location loc);
+	
+	/**
+	 * Add a hook for ApplicableRegionSet on check.<br>
+	 * These get removed on disable.
+	 * @param setCheck
+	 */
+	public void addSetCheck(ISetCheck setCheck);
+	
+	/**
+	 * Remove a certain hook for ApplicableRegionSet on check.
+	 * @param setCheck
+	 */
+	public void removeSetCheck(ISetCheck setCheck);
 
 }

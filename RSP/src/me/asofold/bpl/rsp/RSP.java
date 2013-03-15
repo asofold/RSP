@@ -34,8 +34,7 @@ public class RSP extends JavaPlugin{
 
 	@Override
 	public void onDisable() {
-		core.clearAllPermDefs(); // does checkout and save
-		core.setWG(); // TODO: set to null ?
+		core.onDisable();
 		// Clear player mapping.
 		((OnlinePlayerMap) Players.getOnlinePlayerMap()).clear();
 		// Done.

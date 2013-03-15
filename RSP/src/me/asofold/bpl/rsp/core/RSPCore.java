@@ -1,6 +1,7 @@
 package me.asofold.bpl.rsp.core;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -16,6 +17,7 @@ import me.asofold.bpl.rsp.api.IPermissionUser;
 import me.asofold.bpl.rsp.api.IPermissions;
 import me.asofold.bpl.rsp.api.IPermissionsFactory;
 import me.asofold.bpl.rsp.api.IRSPCore;
+import me.asofold.bpl.rsp.api.ISetCheck;
 import me.asofold.bpl.rsp.api.RSPReloadEvent;
 import me.asofold.bpl.rsp.api.impl.superperms.SuperPerms;
 import me.asofold.bpl.rsp.config.ConfigPermDef;
@@ -152,6 +154,8 @@ public class RSPCore implements IRSPCore{
 	private final PermDefManager pdMan;
 	
 	private final TransientMan transientMan;
+	
+	private final List<ISetCheck> iSetChecks = new ArrayList<ISetCheck>();
 	
 	public RSPCore(RSPTriple triple){
 		this.setTriple(triple);
@@ -593,6 +597,18 @@ public class RSPCore implements IRSPCore{
 			else user.discardChanges();
 		}
 		if (saveOnCheck && userChanged) forceSaveChanges(); // TODO: maybe deprecate this anyway.
+		
+		// Further general calls.
+		if (!iSetChecks.isEmpty()){
+			for (int i = 0; i < iSetChecks.size(); i++){
+				try{
+					iSetChecks.get(i).onSetCheck(playerName, world, set);
+				}
+				catch (Throwable t){
+					// TODO: log.
+				}
+			}
+		}
 	}
 	
 	@Override
@@ -1104,6 +1120,24 @@ public class RSPCore implements IRSPCore{
 	public void onGroupChangeFailure(String userName, String worldName) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public void addSetCheck(ISetCheck setCheck) {
+		if (!iSetChecks.contains(setCheck)){
+			iSetChecks.add(setCheck);
+		}
+	}
+
+	@Override
+	public void removeSetCheck(ISetCheck setCheck) {
+		iSetChecks.remove(setCheck);
+	}
+
+	public void onDisable() {
+		clearAllPermDefs(); // does checkout and save
+		iSetChecks.clear();
+		setWG(); // TODO: set to null ?
 	}
 	
 }
