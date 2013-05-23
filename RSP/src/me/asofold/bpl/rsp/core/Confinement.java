@@ -92,7 +92,7 @@ public class Confinement {
 			}
 			int bX = lv.getBlockX();
 			int bZ = lv.getBlockZ();
-			Chunk chunk = world.getChunkAt(bX,bZ);
+			Chunk chunk = world.getChunkAt(bX / 16,bZ / 16);
 			if ( !chunk.isLoaded()) chunk.load();
 			// TODO: maybe calculate distance to old loc, see if air at same level etc!
 			// TODO: some nether hook ? or highest block setting ?
