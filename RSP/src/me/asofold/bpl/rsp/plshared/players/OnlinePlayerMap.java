@@ -17,7 +17,6 @@ import org.bukkit.plugin.Plugin;
  */
 public class OnlinePlayerMap extends SimplePlayerMap{
 	
-	@SuppressWarnings("unused")
 	private final Listener listener = new Listener() {
 		@EventHandler(priority = EventPriority.LOWEST)
 		public void onJoin(final PlayerJoinEvent event){
