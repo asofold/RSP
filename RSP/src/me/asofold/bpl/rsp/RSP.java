@@ -61,8 +61,6 @@ public class RSP extends JavaPlugin{
 		
 		// commands:
 		getCommand("rsp").setExecutor(new RSPCommand(RSP.core));
-		// TODO: check if core is ready (no errors on con fig loading) ?
-		System.out.println(getPluginVersionString()+" is enabled.");
 		
 		// Set up player mapping.
 		OnlinePlayerMap onlineMap = (OnlinePlayerMap) Players.getOnlinePlayerMap();
@@ -71,6 +69,9 @@ public class RSP extends JavaPlugin{
 				
 		// TODO: schedule this rather.
 		core.recheckAllPlayers(); // TODO: maybe only do this if reloading config failed ! [actually then it should be disabled completely?]
+		
+		// TODO: check if core is ready (no errors on con fig loading) ?
+		System.out.println(getPluginVersionString()+" is enabled.");
 	}
 	
 	public String getPluginVersionString(){

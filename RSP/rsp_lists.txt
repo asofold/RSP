@@ -413,4 +413,48 @@ consider: replace-schema for permissions ([rid] to be replaced by the region id)
 ***
 
 
-consider: region enter + exit: generic things calls: still call with the real regions names !? <- technically impossible.. 
+consider: region enter + exit: generic things calls: still call with the real regions names !? <- technically impossible..
+
+
+
+***************************************************************** 
+***************************************************************** 
+***************************************************************** 
+***************************************************************** 
+*** Full permissions plugin ***
+
+* Extensions
+- Extend commands to cover current functionality (also altering it).
+- Extend functionality and commands to allow changing of groups during runtime.
+- Database support (at least ebeans).
+
+* "Minimal version"
+- Separate players and groups.
+- Allow flexible group inheritance.
+- Priorities for groups and single permissions. (allow config sections as well plain permissions)
+- Negated permissions (as now).
+- Import PEX setup
+- YES: Reload command yes, assigning groups and permissions at runtime yes.
+- NO: Altering groups at runtime.
+- Fully tabbable commands (!).
+- Background data structures for fast updating?
+- How to integrate current transient groups etc.
+
+
+---------------------
+groups.yml
+Mod:
+  meta:
+    priority: 10
+  permissions:
+    # TODO: this possible ?
+    nocheatplus.admin
+    -nocheatplus.admin.removeplayer:
+      priority: 10
+      world: world
+      region: spawn
+  options:
+    pluginXYZoption: 1234
+    
+---------------------
+

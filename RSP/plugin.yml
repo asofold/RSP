@@ -7,8 +7,47 @@ softdepend:
 - bPermissions
 - Vault
 
+permissions:
+  rsp.cmd:
+    description: "All commands of RSP."
+    children:
+      rsp.cmd.stats:
+        description: "All stats commands (timings) with '/rsp stats'."
+        children:
+          rsp.filter.cmd.rsp: true
+          rsp.cmd.stats.see:
+            description: See the stats.
+            children:
+              rsp.filter.cmd.rsp: true
+          rsp.cmd.stats.reset:
+            description: Reset stats.
+            children:
+              rsp.cmd.stats.see: true
+              rsp.filter.cmd.rsp: true
+          rsp.cmd.stats.enable:
+            description: Enable stats.
+            children:
+              rsp.cmd.stats.see: true
+              rsp.filter.cmd.rsp: true
+          rsp.cmd.stats.disable:
+            description: Disable stats.
+            children:
+              rsp.cmd.stats.see: true
+              rsp.filter.cmd.rsp: true
+      rsp.cmd.reload:
+        description: Allow the reload command (reload settings).
+        children:
+          rsp.filter.cmd.rsp: true
+      rsp.cmd.info:
+        description: Allow the info command (runtime information).
+        children:
+          rsp.filter.cmd.rsp: true
+      rsp.cmd.ping:
+        description: Allow the ping sub-command (permission info).
+        children:
+          rsp.filter.cmd.rsp: true
 commands:
-  rsp: 
+  rsp:
      description: 'For managing RSP: /rsp <cmd>... for: | reload | info | stats | stats reset | stats off | stats on | ping ... (permissions)'
      usage: 'For managing RSP: /rsp <cmd>... for: | reload | info | stats | stats reset | stats off | stats on | ping ... (permissions)'
-
+     permission: rsp.filter.cmd.rsp

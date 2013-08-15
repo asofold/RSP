@@ -1,0 +1,93 @@
+
+NEW
+-----------------------
+# groups.yml
+
+SimVan:
+    permissions:
+    - simplyvanish.vanish.self
+    - simplyvanish.reappear.self
+    - seamlessflight.fly.use
+    - nocheatplus.admin
+
+Remove:
+    priority: 5
+    permissions:
+    - -nocehatplus.admin.reload
+
+Day:
+    priority: 10
+    lazy-dist: 10
+    have-inside:
+    - MainWorld: __region__
+    - MiningWorld: __owner__, spawn
+    permissions:
+    - bukkit.command.time
+
+NoDay:
+    priority: 15
+    lazy-dist: 1
+    have-inside:
+    - MiningWorld: spawn_maze
+    permissions:
+    - -bukkit.command.time
+
+DayHighPrio:
+    priority: 50
+    inheritance:
+    - Day
+
+OLD
+-----------------------
+# rsp.yml
+
+permdefs:
+    add:
+        add-enter:
+            groups:
+            - SimVan
+    remove:
+        remove-enter:
+            groups:
+            - SimVan
+    add2:
+        priority: 10000
+        add-enter:
+            groups:
+            - Remove
+    remove2:
+        remove-enter:
+            groups:
+            - Remove
+    day:
+        have-inside:
+            groups:
+            - Day
+links:
+    MainWorld:
+        add:
+        - add
+        - add2
+        remove:
+        - remove
+        - remove2
+        __owner__:
+        - add
+        __member__:
+        - remove
+        __region__:
+        - day
+transient-groups:
+    SimVan:
+    - simplyvanish.vanish.self
+    - simplyvanish.reappear.self
+    - seamlessflight.fly.use
+    - nocheatplus.admin
+    Remove:
+    - nochatplus.admin.reload
+    Day:
+    - bukkit.command.time
+
+-----------------------------------------------------------------------
+
+
