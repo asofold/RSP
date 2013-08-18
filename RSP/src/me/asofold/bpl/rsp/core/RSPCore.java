@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import me.asofold.bpl.rsp.RSP;
@@ -27,12 +28,14 @@ import me.asofold.bpl.rsp.config.WorldSettings;
 import me.asofold.bpl.rsp.config.compatlayer.CompatConfig;
 import me.asofold.bpl.rsp.config.compatlayer.CompatConfigFactory;
 import me.asofold.bpl.rsp.permissions.PermissionUtil;
+import me.asofold.bpl.rsp.permissions.PrioEntry;
 import me.asofold.bpl.rsp.permissions.TransientMan;
 import me.asofold.bpl.rsp.stats.Stats;
 import me.asofold.bpl.rsp.utils.BlockPos;
 import me.asofold.bpl.rsp.utils.Utils;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
@@ -413,7 +416,10 @@ public class RSPCore implements IRSPCore{
 		WorldSettings settings = worlds.get(worldName);
 		if (settings == null) settings = defaults;
 		boolean withinLazyDist = false;
-		if (data.checkPos != null) withinLazyDist = !data.checkPos.setOnDist(loc, settings.lazyDist);
+		int lazyDist = Math.min(settings.lazyDist, data.minLazyDist);
+		if (data.checkPos != null) {
+			withinLazyDist = !data.checkPos.setOnDist(loc, lazyDist);
+		}
 		if (settings.confine && !withinLazyDist){
 			// TODO: This might keep permissions, which are meant to be removed. [Might add some abuse protection, checkout on abuse.]
 			if (!Confinement.checkConfinement(settings, data, loc) ) return;
@@ -444,7 +450,7 @@ public class RSPCore implements IRSPCore{
 		boolean groupsChanged = false; // PlayerData has groups set to be applied to the permission user.
 		boolean userChanged = false; // Permission user is changed.
 		boolean prepared = false;
-		
+		lazyDist = settings.lazyDist;
 		// Check cache expiration:
 		if (data.checkCache(lifetimeCache)){
 			user = permissions.getUser(playerName, worldName);
@@ -454,7 +460,9 @@ public class RSPCore implements IRSPCore{
 				for ( Integer id : data.idCache ){
 					final PermDefData pd = pdMan.idDefMap.get(id);
 					if (pd == null) continue; // TODO: maybe remove (contract	).
-					if (data.checkExpire(user, pd, id)) groupsChanged = true;
+					if (data.checkExpire(user, pd, id)) {
+						groupsChanged = true;
+					}
 				}
 			}
 			withinLazyDist = false;
@@ -549,16 +557,22 @@ public class RSPCore implements IRSPCore{
 		
 		// Check for ids to remove ---
 		
-		if ( nMatched < nActive ){ // TODO: consistency of this with PermDefdata guaranteed?
+		if (nMatched < nActive ){ // TODO: consistency of this with PermDefdata guaranteed?
 			// REGION EXIT
 			// needs adjustment ("complicated") !
 			// check which have to be removed. => might need a permdef-name cache as well (reference count)?
 			// remove perms for not present groups:
 			final List<Integer> rem = new LinkedList<Integer>();
-			for (Integer id : active){
+			for (final Integer id : active){
 				if (!matched.contains(id)){
 					// TODO: check if not inside of add + police ?
 					rem.add(id);
+				} else {
+					// Group kept.
+					final PermDefData defs = pdMan.idDefMap.get(id);
+					if (defs != null) {
+						lazyDist = Math.min(lazyDist, defs.minLazyDist);
+					}
 				}
 			}
 			if (!rem.isEmpty()){
@@ -566,13 +580,22 @@ public class RSPCore implements IRSPCore{
 					user.prepare();
 					prepared = true;
 				}
-				for (Integer id : rem){
-					PermDefData defs = pdMan.idDefMap.get(id);
+				for (final Integer id : rem){
+					final PermDefData defs = pdMan.idDefMap.get(id);
 					if (defs == null) continue; // TODO: internal error
 					if (data.checkExit(user, defs, id)) groupsChanged = true;
 				}
 			}
-		} // else assert nMatched == active.size();
+		} else {
+			// else assert nMatched == active.size();
+			for (final Integer id : active){
+				// Group kept.
+				final PermDefData defs = pdMan.idDefMap.get(id);
+				if (defs != null) {
+					lazyDist = Math.min(lazyDist, defs.minLazyDist);
+				}
+			}
+		}
 		
 		// add perms for new ids:
 		// REGION ENTER [def eneter, actually]
@@ -584,10 +607,12 @@ public class RSPCore implements IRSPCore{
 			for (Integer id : newIds){
 				final PermDefData defs = pdMan.idDefMap.get(id);
 				if (defs == null) continue; // TODO: internal error.
+				lazyDist = Math.min(lazyDist, defs.minLazyDist);
 				if (data.checkEnter(user, defs, id)) groupsChanged = true;
 				// TODO: also add others ?
 			}
 		}
+		data.minLazyDist = lazyDist;
 		data.isChecked = true;
 		if (groupsChanged){
 			if (PermissionUtil.changeGroups(playerName, transientMan, user, data.groups, true, false)) userChanged = true;
@@ -1031,6 +1056,21 @@ public class RSPCore implements IRSPCore{
 					sender.sendMessage("[RSP] Inconsistency (players both in "+sn[i]+"->"+sn[j]+"): "+Utils.join(found, ", "));
 				}
 			}
+		}
+		if (sender instanceof Player) {
+			final Player player = (Player) sender;
+			WorldSettings settings = getSettings(player.getWorld().getName());
+			PlayerData data = getData(player.getName());
+			String groups = "";
+			if (!data.groups.isEmpty()) {
+				LinkedList<String> all = new LinkedList<String>();
+				for (final Entry<String, PrioEntry> entry : data.groups.entrySet()) {
+					final PrioEntry pe = entry.getValue();
+					all.add(entry.getKey() + "(" + pe.prioAdd + "/" + pe.prioRem + ")");
+				}
+				groups = Utils.join(all,  " ");
+			}
+			player.sendMessage("Your data:" + ChatColor.GRAY + (data.minLazyDist != Integer.MAX_VALUE ? (" lazydist=" + data.minLazyDist) : "") + (data.minLazyDist != settings.lazyDist ? "(" + settings.lazyDist + ")" : "") + groups);
 		}
 	}
 

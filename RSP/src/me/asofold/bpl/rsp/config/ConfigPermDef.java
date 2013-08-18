@@ -36,6 +36,8 @@ public class ConfigPermDef {
 	final List<IRegionExit> callOnExit = new LinkedList<IRegionExit>();
 	int priority = 0;
 	
+	int lazyDist = Integer.MAX_VALUE;
+	
 	/**
 	 * Constructor with default priority (0).
 	 * @param defName
@@ -54,11 +56,16 @@ public class ConfigPermDef {
 	 * @param priority
 	 */
 	public ConfigPermDef(String defName, String ignorePerm, String filterPerm, int priority){
+		this(defName, ignorePerm, filterPerm, priority, Integer.MAX_VALUE);
+	}
+	
+	public ConfigPermDef(String defName, String ignorePerm, String filterPerm, int priority, int lazyDist){
 		if ( defName == null) throw new IllegalArgumentException("defName must be set.");
 		this.defName = defName;
 		this.ignorePerm = ignorePerm;
 		this.filterPerm = filterPerm;
 		this.priority = priority;
+		this.lazyDist = lazyDist;
 	}
 	
 	
@@ -107,7 +114,8 @@ public class ConfigPermDef {
 			String ignorePerm = cfg.getString(defBase+"ignore-perm", null);
 			String filterPerm = cfg.getString(defBase+"filter-perm", null);
 			int priority = cfg.getInt(defBase + "priority", 0);
-			ConfigPermDef def = new ConfigPermDef(defName, ignorePerm, filterPerm, priority);
+			int lazyDist = Math.max(0, cfg.getInt(defBase + "lazy-dist", Integer.MAX_VALUE));
+			ConfigPermDef def = new ConfigPermDef(defName, ignorePerm, filterPerm, priority, lazyDist);
 			for ( GroupUse use : GroupUse.values()){		
 				String grpKey = defBase+(use.name().toLowerCase().replaceAll("_", "-"))+".groups";
 				List<String> grps = cfg.getStringList(grpKey, null);

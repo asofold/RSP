@@ -20,6 +20,11 @@ final class PermDefData {
 	// TODO: re-think data type (fastest, simplest)
 	
 	/**
+	 * All permdefs that were added.
+	 */
+	final Set<PermDef> allAdded = new LinkedHashSet<PermDef>();
+	
+	/**
 	 * PermDefs to add at entering a region.
 	 */
 	final Set<PermDef> defAddEnter = new LinkedHashSet<PermDef>();
@@ -45,9 +50,15 @@ final class PermDefData {
 	String worldName = null;
 	String rid = null;
 	
+	int minLazyDist = Integer.MAX_VALUE;
+	
 	public PermDefData(String worldName, String rid){
 		this.worldName = worldName;
 		this.rid = rid;
+	}
+	
+	public void updateMinLazyDist() {
+		
 	}
 
 	/**
@@ -55,16 +66,39 @@ final class PermDefData {
 	 * @param def
 	 */
 	public void addPermDef(PermDef def) {
-		if (!def.callOnEnter.isEmpty()) callOnEnter.add(def); 
-		if (!def.callOnExit.isEmpty()) callOnExit.add(def); 
-		if (!def.grpAddEnter.isEmpty()) defAddEnter.add(def);
-		if (!def.grpRemExit.isEmpty()) defRemExit.add(def);
-		if (!def.grpRemEnter.isEmpty()) defRemEnter.add(def);
-		if (!def.grpAddExit.isEmpty()) defAddExit.add(def);
+		boolean added = false;
+		// TODO: Should replace ? Or throw otherwise externally.
+		if (!def.callOnEnter.isEmpty()) {
+			callOnEnter.add(def);
+			added = true;
+		}
+		if (!def.callOnExit.isEmpty()) {
+			callOnExit.add(def);
+			added = true;
+		}
+		if (!def.grpAddEnter.isEmpty()) {
+			defAddEnter.add(def);
+			added = true;
+		}
+		if (!def.grpRemExit.isEmpty()) {
+			defRemExit.add(def);
+			added = true;
+		}
+		if (!def.grpRemEnter.isEmpty()) {
+			defRemEnter.add(def);
+			added = true;
+		}
+		if (!def.grpAddExit.isEmpty()) {
+			defAddExit.add(def);
+			added = true;
+		}
+		// Adjust (allow empty permdefs for lazy-dist).
+		if (allAdded.add(def) || added) {
+			minLazyDist = Math.min(minLazyDist, def.lazyDist);
+		}
 	}
 	
 	public boolean removePermDef(PermDef def){
-		// TODO: add new group uses.
 		boolean found = false;
 		if ( defAddEnter.contains(def)){
 			found = true;
@@ -90,6 +124,11 @@ final class PermDefData {
 			found = true;
 			callOnExit.remove(def);
 		}
+		// Adjust (allow removal of empty).
+		if (allAdded.remove(def)) {
+			updateMinLazyDist();
+		}
+		
 		return found;
 	}
 

@@ -55,7 +55,9 @@ public class PermDef {
 	public String filterPermission = null;
 	//public String filterGroup = null;
 	
-	public int priority;
+	public int priority = 0;
+	
+	public int lazyDist = Integer.MAX_VALUE;
 	
 	/**
 	 * Call on entering a region.
@@ -104,6 +106,7 @@ public class PermDef {
 		def.ignorePermName = cfgDef.ignorePerm;
 		def.filterPermission = cfgDef.filterPerm;
 		def.priority = cfgDef.priority;
+		def.lazyDist = cfgDef.lazyDist;
 		def.callOnEnter.addAll(cfgDef.callOnEnter);
 		def.callOnExit.addAll(cfgDef.callOnExit);
 		for (GroupUse use : cfgDef.groups.keySet()){

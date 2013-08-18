@@ -29,6 +29,9 @@ public class PlayerData {
 	public long tsCache = 0;
 	public BlockPos checkPos = null;
 	
+	/** Minimum lazy dist for all permdefs, updated externally (!). */
+	public int minLazyDist = Integer.MAX_VALUE;
+	
 	/**
 	 * Active rids for the user. Might contain regions for which the player has the ignore-perm.
 	 * Used for quick diff check. (only consider changes, till reset)
@@ -74,7 +77,8 @@ public class PlayerData {
 	 */
 	public final void onCacheExpire(final long ts){
 		tsCache = ts;
-		checkPos = null; 
+		checkPos = null;
+		minLazyDist = Integer.MAX_VALUE;
 	}
 	
 	public final void clearCache(){
