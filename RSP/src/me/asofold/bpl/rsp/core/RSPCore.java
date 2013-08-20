@@ -162,6 +162,9 @@ public class RSPCore implements IRSPCore{
 	
 	private final List<ISetCheck> iSetChecks = new ArrayList<ISetCheck>();
 	
+	/** For temporary use only, always call setWorld(null) after use. */
+	protected final Location useLoc = new Location(null, 0, 0, 0);
+	
 	public RSPCore(RSPTriple triple){
 		this.setTriple(triple);
 		
@@ -203,7 +206,8 @@ public class RSPCore implements IRSPCore{
 		//if (!permissions.isAvailable()) return;
 		for (Player player : Bukkit.getServer().getOnlinePlayers()){
 			try{
-				check(player.getName(),player.getLocation());
+				check(player.getName(), player.getLocation(useLoc));
+				useLoc.setWorld(null);
 			} catch (Throwable t){
 				System.out.println("[RSP] Failed to check player: "+player.getName() );
 			}
@@ -400,8 +404,10 @@ public class RSPCore implements IRSPCore{
 		final Player player = Players.getPlayerExact(playerName);
 		if (player != null) {
 			// TODO: More against inconsistent states (clear groups + full re-check)?
-			getData(playerName).forceCacheExpiration();
-			check(playerName, player.getLocation());
+			final PlayerData data = getData(playerName);
+			data.forceCacheExpiration();
+			check(playerName, player.getLocation(useLoc));
+			useLoc.setWorld(null);
 			if (useStats) {
 				RSPCore.stats.addStats(RSPCore.DELAYED_CHECK, System.nanoTime() - ts);
 			}
@@ -675,10 +681,11 @@ public class RSPCore implements IRSPCore{
 	public void checkout(String playerName, boolean heavy){ //Player player) {
 		// check all given groups or ALL if not checked.
 		if ( checkedOut.size() > maxCheckedOut) releaseCheckedOut();
-		if (!permissions.isAvailable()) return; // TODO: maybe not
 		final PlayerData data = getData(playerName);
 		data.forceCacheExpiration();
 		data.checkTask.cancel();
+		data.lastValidLoc.setWorld(null);
+		if (!permissions.isAvailable()) return; // TODO: maybe not
 		Set<Integer> ids = new HashSet<Integer>();
 		if (!data.isChecked){
 			if (heavy) ids.addAll(pdMan.idDefMap.keySet());
@@ -766,7 +773,8 @@ public class RSPCore implements IRSPCore{
 	 * @param player
 	 */
 	public void recheck(Player player, boolean heavy){
-		recheck(player.getName(), player.getLocation(), heavy);
+		recheck(player.getName(), player.getLocation(useLoc), heavy);
+		useLoc.setWorld(null);
 	}
 	
 	public void recheck(String playerName, Location loc, boolean heavy){

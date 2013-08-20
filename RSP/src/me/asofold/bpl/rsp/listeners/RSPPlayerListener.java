@@ -39,6 +39,9 @@ public class RSPPlayerListener implements Listener{
 	private final RSPCore core;
 	private boolean useStats = true;
 	
+	/** For temporary use only, always call setWorld(null) after use. */
+	protected final Location useLoc = new Location(null, 0, 0, 0);
+	
 	public RSPPlayerListener(RSPCore core){
 		this.core = core;
 	}
@@ -48,7 +51,8 @@ public class RSPPlayerListener implements Listener{
 		// (Must have).
 		final long ts = useStats ? System.nanoTime() : 0L; 
 		Player player = event.getPlayer();
-		core.check(player.getName(), player.getLocation());
+		core.check(player.getName(), player.getLocation(useLoc));
+		useLoc.setWorld(null);
 		if ( useStats){
 			RSPCore.stats.addStats(RSPCore.PLAYER_CHANGED_WORLD, System.nanoTime()-ts);
 		}
@@ -60,7 +64,8 @@ public class RSPPlayerListener implements Listener{
 		// TODO: How about checking the bounds here?
 		final long ts = useStats ? System.nanoTime() : 0L;
 		final Player player = event.getPlayer();
-		core.checkJoin(player.getName(), player.getLocation(), false);
+		core.checkJoin(player.getName(), player.getLocation(useLoc), false);
+		useLoc.setWorld(null);
 		if (useStats){
 			RSPCore.stats.addStats(RSPCore.PLAYER_LOGIN, System.nanoTime()-ts);
 		}
@@ -72,7 +77,8 @@ public class RSPPlayerListener implements Listener{
 		// TODO: How about checking the bounds here?
 		final long ts = useStats ? System.nanoTime() : 0L;
 		final Player player = event.getPlayer();
-		core.checkJoin(player.getName(), player.getLocation(), true);
+		core.checkJoin(player.getName(), player.getLocation(useLoc), true);
+		useLoc.setWorld(null);
 		if (useStats){
 			RSPCore.stats.addStats(RSPCore.PLAYER_JOIN, System.nanoTime()-ts);
 		}
@@ -104,21 +110,23 @@ public class RSPPlayerListener implements Listener{
 		final Entity entity = vehicle.getPassenger();
 		if (entity == null) return;
 		if (!(entity instanceof Player)) return;
-		if (!core.isWithinBounds(entity.getLocation())){
+		if (!core.isWithinBounds(entity.getLocation(useLoc))){
 			((Player) entity).leaveVehicle();
 			vehicle.setPassenger(null);
 			final Vector v = new Vector(0,0,0);
 			vehicle.setVelocity(v);
 			entity.setVelocity(v.clone());
 		}
+		useLoc.setWorld(null);
 	}
 	
 	@EventHandler(priority=EventPriority.LOW, ignoreCancelled = true)
 	final void onVehicleEnterLow(final VehicleEnterEvent event){
 		if (event.getEntered() instanceof Player){
-			if ( !core.isWithinBounds(event.getVehicle().getLocation())){
+			if ( !core.isWithinBounds(event.getVehicle().getLocation(useLoc))){
 				event.setCancelled(true);
 			}
+			useLoc.setWorld(null);
 		}
 	}
 	
@@ -127,7 +135,8 @@ public class RSPPlayerListener implements Listener{
 		final Entity entity = event.getEntered();
 		if ( entity instanceof Player){
 			final long ts = useStats ? System.nanoTime() : 0L;
-			core.check(((Player) entity).getName(), event.getVehicle().getLocation());
+			core.check(((Player) entity).getName(), event.getVehicle().getLocation(useLoc));
+			useLoc.setWorld(null);
 			if ( useStats){
 				RSPCore.stats.addStats(RSPCore.VEHICLE_ENTER, System.nanoTime()-ts);
 			}
@@ -139,7 +148,8 @@ public class RSPPlayerListener implements Listener{
 		final Entity entity = event.getExited();
 		if ( entity instanceof Player){
 			final long ts = useStats ? System.nanoTime() : 0L;
-			core.check(((Player) entity).getName(), event.getVehicle().getLocation());
+			core.check(((Player) entity).getName(), event.getVehicle().getLocation(useLoc));
+			useLoc.setWorld(null);
 			if ( useStats){
 				RSPCore.stats.addStats(RSPCore.VEHICLE_EXIT, System.nanoTime()-ts);
 			}

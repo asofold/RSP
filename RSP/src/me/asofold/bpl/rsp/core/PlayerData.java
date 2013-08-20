@@ -22,10 +22,11 @@ import org.bukkit.Location;
 public class PlayerData {
 	public final String playerName;
 	public final DelayedCheckTask checkTask;
+	
 	/**
-	 * For future use (deny enter?).
+	 * For confinement use. Set world to null to invalidate.
 	 */
-	public Location lastValidLoc = null;
+	public final Location lastValidLoc = new Location(null, 0, 0, 0);
 	public boolean isChecked = false;
 	public long tsCache = 0;
 	public BlockPos checkPos = null;

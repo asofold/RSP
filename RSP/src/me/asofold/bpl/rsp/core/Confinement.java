@@ -44,8 +44,11 @@ public class Confinement {
 		final boolean outside;
 		if (settings.circular) outside = distance(settings, loc)>settings.cR; // TODO: use squared dist (WorldSettings.cRsq)
 		else outside = (Math.abs(settings.cX-loc.getX()) > settings.cR) || (Math.abs(settings.cZ-loc.getZ()) > settings.cR);
-		if ( !outside){
-			data.lastValidLoc = loc.clone();
+		if (!outside){
+			data.lastValidLoc.setWorld(loc.getWorld());
+			data.lastValidLoc.setX(loc.getX());
+			data.lastValidLoc.setY(loc.getY());
+			data.lastValidLoc.setZ(loc.getZ());
 			return true;
 		}
 		else{
@@ -63,15 +66,20 @@ public class Confinement {
 	 */
 	public static final boolean restoreConfinement(final WorldSettings settings, final PlayerData data, final Location loc){
 		final Player player = Players.getPlayerExact(data.playerName);
-		if ( player == null) return true; // TODO: special case.
+		if (player == null) {
+			data.lastValidLoc.setWorld(null);
+			return true; // TODO: special case.
+		}
 		Location tpLoc = null;
-		if ( settings.useLastLocation){
-			if (data.lastValidLoc != null){
+		if (settings.useLastLocation){
+			if (data.lastValidLoc.getWorld() != null){
 				// Could be in another world !
 				if (isWithinBounds(getSettings(data.lastValidLoc.getWorld().getName()), data.lastValidLoc)){
-					tpLoc = data.lastValidLoc;
+					tpLoc = data.lastValidLoc.clone();
 				}
-				else data.lastValidLoc = null;
+				else {
+					data.lastValidLoc.setWorld(null);
+				}
 			}
 		}
 		if ( tpLoc == null){
