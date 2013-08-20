@@ -442,19 +442,8 @@ consider: region enter + exit: generic things calls: still call with the real re
 
 
 ---------------------
-groups.yml
-Mod:
-  meta:
-    priority: 10
-  permissions:
-    # TODO: this possible ?
-    nocheatplus.admin
-    -nocheatplus.admin.removeplayer:
-      priority: 10
-      world: world
-      region: spawn
-  options:
-    pluginXYZoption: 1234
-    
----------------------
 
+PROBLEMS: 
+    teleport / respawn / similar: player may have filter permission at from but not at to.
+    switch to delayed check (cancel task on check, remove task on task run), no check in the teleport event.
+    

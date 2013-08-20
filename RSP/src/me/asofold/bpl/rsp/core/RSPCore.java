@@ -66,6 +66,7 @@ public class RSPCore implements IRSPCore{
 	public final static Integer CHECKOUT_ALL = stats.getNewId("CheckoutAll");
 	public final static Integer SAVE_CHANGES = stats.getNewId("SaveChanges");
 	public final static Integer PLAYER_CHANGED_WORLD = stats.getNewId("CheckWorldChange");
+	public final static Integer PLAYER_LOGIN = stats.getNewId("CheckLogin");
 	public final static Integer PLAYER_JOIN = stats.getNewId("CheckJoin");
 	public final static Integer PLAYER_MOVE = stats.getNewId("CheckMove");
 	public final static Integer VEHICLE_ENTER = stats.getNewId("CheckVehicleEnter");
@@ -725,8 +726,8 @@ public class RSPCore implements IRSPCore{
 		}
 	}
 	
-	public void checkJoin(String playerName, Location loc){
-		if (checkedOut.contains(playerName) || parked.containsKey(playerName)){
+	public void checkJoin(String playerName, Location loc, boolean forceShallow){
+		if (forceShallow || checkedOut.contains(playerName) || parked.containsKey(playerName)){
 			// TODO: maybe remove from transientMan
 			transientMan.updatePlayer(playerName, true); // TODO: maybe something more efficient (flag in player data).
 			check(playerName, loc);

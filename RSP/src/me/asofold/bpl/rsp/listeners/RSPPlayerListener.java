@@ -16,6 +16,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerKickEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -28,7 +29,6 @@ import org.bukkit.util.Vector;
 
 
 /**
- * TODO: on VECTOR ? 
  * TODO: get rid of unnecessary checks already here ?
  * TODO: split into several listeners, to be able to register only the needed ones.
  * @author mc_dev
@@ -42,21 +42,27 @@ public class RSPPlayerListener implements Listener{
 	public RSPPlayerListener(RSPCore core){
 		this.core = core;
 	}
-	
-	
-
 
 	@EventHandler(priority=EventPriority.MONITOR)
 	final void onPlayerChangedWorld(final PlayerChangedWorldEvent event) {
-		// TODO: maybe remove !
+		// (Must have).
+		final long ts = useStats ? System.nanoTime() : 0L; 
+		Player player = event.getPlayer();
+		core.check(player.getName(), player.getLocation());
 		if ( useStats){
-			final long ts = System.nanoTime();
-			Player player = event.getPlayer();
-			core.check(player.getName(), player.getLocation());
 			RSPCore.stats.addStats(RSPCore.PLAYER_CHANGED_WORLD, System.nanoTime()-ts);
-		} else{
-			Player player = event.getPlayer();
-			core.check(player.getName(), player.getLocation());	
+		}
+	}
+	
+	@EventHandler(priority=EventPriority.LOW)
+	final void onPlayerLogin(final PlayerLoginEvent event) {
+		// TODO: maybe switch to another way (check if needs deep re-check).
+		// TODO: How about checking the bounds here?
+		final long ts = useStats ? System.nanoTime() : 0L;
+		final Player player = event.getPlayer();
+		core.checkJoin(player.getName(), player.getLocation(), false);
+		if (useStats){
+			RSPCore.stats.addStats(RSPCore.PLAYER_LOGIN, System.nanoTime()-ts);
 		}
 	}
 
@@ -64,13 +70,11 @@ public class RSPPlayerListener implements Listener{
 	final void onPlayerJoin(final PlayerJoinEvent event) {
 		// TODO: maybe switch to another way (check if needs deep re-check).
 		// TODO: How about checking the bounds here?
+		final long ts = useStats ? System.nanoTime() : 0L;
 		final Player player = event.getPlayer();
+		core.checkJoin(player.getName(), player.getLocation(), true);
 		if (useStats){
-			final long ts = System.nanoTime();
-			core.checkJoin(player.getName(), player.getLocation());
 			RSPCore.stats.addStats(RSPCore.PLAYER_JOIN, System.nanoTime()-ts);
-		} else{
-			core.checkJoin(player.getName(), player.getLocation());
 		}
 	}
 
@@ -86,13 +90,11 @@ public class RSPPlayerListener implements Listener{
 
 	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled = false)
 	final void onPlayerMove(final PlayerMoveEvent event) {
+		final long ts = useStats ? System.nanoTime() : 0L;
 		final Location ref = event.isCancelled() ? event.getFrom() : event.getTo();
+		core.check(event.getPlayer().getName(), ref);
 		if ( useStats){
-			final long ts = System.nanoTime();
-			core.check(event.getPlayer().getName(), ref);
 			RSPCore.stats.addStats(RSPCore.PLAYER_MOVE, System.nanoTime()-ts);
-		} else{
-			core.check(event.getPlayer().getName(), ref);
 		}
 	}
 	
@@ -124,12 +126,10 @@ public class RSPPlayerListener implements Listener{
 	final void onVehicleEnter(final VehicleEnterEvent event){
 		final Entity entity = event.getEntered();
 		if ( entity instanceof Player){
+			final long ts = useStats ? System.nanoTime() : 0L;
+			core.check(((Player) entity).getName(), event.getVehicle().getLocation());
 			if ( useStats){
-				final long ts = System.nanoTime();
-				core.check(((Player) entity).getName(), event.getVehicle().getLocation());
 				RSPCore.stats.addStats(RSPCore.VEHICLE_ENTER, System.nanoTime()-ts);
-			} else{
-				core.check(((Player) entity).getName(), event.getVehicle().getLocation());
 			}
 		}
 	}
@@ -138,12 +138,10 @@ public class RSPPlayerListener implements Listener{
 	final void onVehicleExit(VehicleExitEvent event){
 		final Entity entity = event.getExited();
 		if ( entity instanceof Player){
+			final long ts = useStats ? System.nanoTime() : 0L;
+			core.check(((Player) entity).getName(), event.getVehicle().getLocation());
 			if ( useStats){
-				final long ts = System.nanoTime();
-				core.check(((Player) entity).getName(), event.getVehicle().getLocation());
 				RSPCore.stats.addStats(RSPCore.VEHICLE_EXIT, System.nanoTime()-ts);
-			} else{
-				core.check(((Player) entity).getName(), event.getVehicle().getLocation());
 			}
 		}
 	}
@@ -180,29 +178,25 @@ public class RSPPlayerListener implements Listener{
 	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled = true)
 	final void onPlayerPortal(final PlayerPortalEvent event) {
 		// TODO: maybe this should be removed ! <- which "this" ?
+		final long ts = useStats ? System.nanoTime() : 0L;
 		final Location to = event.getTo();
 		if (to == null) return;
+		core.check(event.getPlayer().getName(), to);
 		if (useStats){
-			long ts = System.nanoTime();
-			core.check(event.getPlayer().getName(), to);
 			RSPCore.stats.addStats(RSPCore.PLAYER_PORTAL, System.nanoTime()-ts);
-		} else{
-			core.check(event.getPlayer().getName(), to);
 		}
 	}
 
 	@EventHandler(priority=EventPriority.MONITOR)
 	final void onPlayerRespawn(final PlayerRespawnEvent event) {
+		final long ts = useStats ? System.nanoTime() : 0L;
 		final Location loc = event.getRespawnLocation();
 		if ( !core.isWithinBounds(loc)){
 			Bukkit.getLogger().warning("[RSP] Player "+event.getPlayer().getName()+" respawns outside of boundaries or world "+loc.getWorld().getName()+"!");
 		}
+		core.check(event.getPlayer().getName(), loc);
 		if ( useStats){
-			long ts = System.nanoTime();
-			core.check(event.getPlayer().getName(), loc);
 			RSPCore.stats.addStats(RSPCore.PLAYER_RESPAWN, System.nanoTime()-ts);
-		} else{
-			core.check(event.getPlayer().getName(), loc);
 		}
 	}
 	
@@ -221,14 +215,12 @@ public class RSPPlayerListener implements Listener{
 
 	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled = true)
 	final void onPlayerTeleport(final PlayerTeleportEvent event) {
+		final long ts = useStats ? System.nanoTime() : 0L;
 		final Location to = event.getTo();
 		if (to == null) return;
-		if (useStats){
-			final long ts = System.nanoTime();
-			core.check(event.getPlayer().getName(), to);
-			RSPCore.stats.addStats(RSPCore.PLAYER_TELEPORT, System.nanoTime()-ts);
-		} else{
-			core.check(event.getPlayer().getName(), to);
+		core.check(event.getPlayer().getName(), to);
+		if (useStats) {
+			RSPCore.stats.addStats(RSPCore.PLAYER_TELEPORT, System.nanoTime() - ts);
 		}
 	}
 	
