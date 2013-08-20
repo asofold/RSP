@@ -28,7 +28,6 @@ import me.asofold.bpl.rsp.config.WorldSettings;
 import me.asofold.bpl.rsp.config.compatlayer.CompatConfig;
 import me.asofold.bpl.rsp.config.compatlayer.CompatConfigFactory;
 import me.asofold.bpl.rsp.permissions.PermissionUtil;
-import me.asofold.bpl.rsp.permissions.PrioEntry;
 import me.asofold.bpl.rsp.permissions.TransientMan;
 import me.asofold.bpl.rsp.stats.Stats;
 import me.asofold.bpl.rsp.utils.BlockPos;
@@ -1060,19 +1059,42 @@ public class RSPCore implements IRSPCore{
 	}
 	
 	public void sendPlayerInfo(final CommandSender sender, final Player player) {
-		WorldSettings settings = getSettings(player.getWorld().getName());
-		PlayerData data = getData(player.getName());
-		String groups = "";
-		if (!data.groups.isEmpty()) {
-			LinkedList<String> all = new LinkedList<String>();
-			for (final Entry<String, PrioEntry> entry : data.groups.entrySet()) {
-				final PrioEntry pe = entry.getValue();
-				all.add(entry.getKey() + "(" + pe.prioAdd + "/" + pe.prioRem + ")");
+		final WorldSettings settings = getSettings(player.getWorld().getName());
+		final PlayerData data = getData(player.getName());
+		final String c0 = sender instanceof Player ? ChatColor.GREEN.toString() : "";
+		final String c1 = sender instanceof Player ? ChatColor.WHITE.toString() : "";
+		final String c2 = sender instanceof Player ? ChatColor.GRAY.toString() : "";
+		// TODO: groups are temporary anyway.
+//		String groups = "";
+//		if (!data.groups.isEmpty()) {
+//			LinkedList<String> all = new LinkedList<String>();
+//			for (final Entry<String, PrioEntry> entry : data.groups.entrySet()) {
+//				final PrioEntry pe = entry.getValue();
+//				all.add(entry.getKey() + "(" + pe.prioAdd + "/" + pe.prioRem + ")");
+//			}
+//			groups = Utils.join(all,  " ");
+//		}
+		StringBuilder builder = new StringBuilder(128 + 32 * data.idCache.size());
+		builder.append(c0 + player.getName() + c1 + ":" + (data.minLazyDist != Integer.MAX_VALUE ? (c1 + " lazydist=" + c2 + data.minLazyDist) : "") + (data.minLazyDist != settings.lazyDist ? "(" + settings.lazyDist + ")" : ""));
+		if (!data.idCache.isEmpty()) {
+			builder.append(c1 + " links:" + c2);
+			for (final Integer id : data.idCache) {
+				final PermDefData pd = this.pdMan.getPermDefData(id);
+				if (pd == null) {
+					builder.append(" (missing id: " + id + ")");
+				} else {
+					builder.append(" " + pd.rid + "(" + pd.worldName + ")");
+				}
 			}
-			groups = Utils.join(all,  " ");
 		}
-		String c1 = sender instanceof Player ? ChatColor.GRAY.toString() : "";
-		sender.sendMessage(player.getName() + c1 + ":" + ChatColor.GRAY + (data.minLazyDist != Integer.MAX_VALUE ? (" lazydist=" + data.minLazyDist) : "") + (data.minLazyDist != settings.lazyDist ? "(" + settings.lazyDist + ")" : "") + groups);
+		final Map<String, Integer> groups = transientMan.getGroupPriorityMap(player.getName());
+		if (!groups.isEmpty()) {
+			builder.append(c1 + " transient-groups:" + c2);
+			for (final Entry<String, Integer> entry : groups.entrySet()) {
+				builder.append(" " + entry.getKey() + "@" + entry.getValue());
+			}
+		}
+		sender.sendMessage(builder.toString());
 	}
 
 	public void resetStats() {

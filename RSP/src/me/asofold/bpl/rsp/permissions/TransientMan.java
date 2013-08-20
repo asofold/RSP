@@ -190,6 +190,15 @@ public class TransientMan {
 		}
 		return permissions;
 	}
+	
+	/**
+	 * For informational purposes.
+	 * @param playerName Case insensitive.
+	 * @return
+	 */
+	public Map<String, Integer> getGroupPriorityMap(final String playerName) {
+		return inGroup.get(playerName.toLowerCase());
+	}
 
 	public void removePlayer(String playerName){
 		String lcName = playerName.toLowerCase();

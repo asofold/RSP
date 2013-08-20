@@ -89,6 +89,16 @@ public class PermDefManager {
 		if ( id == null ) return null;
 		return idDefMap.get(id);
 	}
+	
+	/**
+	 * Get the PermDefData for the given id, as is stored in PlayerData.idCache.
+	 * @param id
+	 * @return
+	 */
+	public PermDefData getPermDefData(final Integer id) {
+		return idDefMap.get(id);
+	}
+	
 	public boolean applySettings(Settings settings){
 		for (ConfigPermDef def : settings.configPermDefs){
 			addPermDef(def, PermDefType.CONFIG);
