@@ -1019,8 +1019,8 @@ public class RSPCore implements IRSPCore{
 			stats.clear();
 		}
 	}
-
-	public void sendInfo(CommandSender sender) {
+	
+	public void sendGeneralInfo(CommandSender sender) {
 		String msg = "[RSP] Info: ";
 		int linksize =0;
 		int worlds = 0;
@@ -1057,21 +1057,22 @@ public class RSPCore implements IRSPCore{
 				}
 			}
 		}
-		if (sender instanceof Player) {
-			final Player player = (Player) sender;
-			WorldSettings settings = getSettings(player.getWorld().getName());
-			PlayerData data = getData(player.getName());
-			String groups = "";
-			if (!data.groups.isEmpty()) {
-				LinkedList<String> all = new LinkedList<String>();
-				for (final Entry<String, PrioEntry> entry : data.groups.entrySet()) {
-					final PrioEntry pe = entry.getValue();
-					all.add(entry.getKey() + "(" + pe.prioAdd + "/" + pe.prioRem + ")");
-				}
-				groups = Utils.join(all,  " ");
+	}
+	
+	public void sendPlayerInfo(final CommandSender sender, final Player player) {
+		WorldSettings settings = getSettings(player.getWorld().getName());
+		PlayerData data = getData(player.getName());
+		String groups = "";
+		if (!data.groups.isEmpty()) {
+			LinkedList<String> all = new LinkedList<String>();
+			for (final Entry<String, PrioEntry> entry : data.groups.entrySet()) {
+				final PrioEntry pe = entry.getValue();
+				all.add(entry.getKey() + "(" + pe.prioAdd + "/" + pe.prioRem + ")");
 			}
-			player.sendMessage("Your data:" + ChatColor.GRAY + (data.minLazyDist != Integer.MAX_VALUE ? (" lazydist=" + data.minLazyDist) : "") + (data.minLazyDist != settings.lazyDist ? "(" + settings.lazyDist + ")" : "") + groups);
+			groups = Utils.join(all,  " ");
 		}
+		String c1 = sender instanceof Player ? ChatColor.GRAY.toString() : "";
+		sender.sendMessage(player.getName() + c1 + ":" + ChatColor.GRAY + (data.minLazyDist != Integer.MAX_VALUE ? (" lazydist=" + data.minLazyDist) : "") + (data.minLazyDist != settings.lazyDist ? "(" + settings.lazyDist + ")" : "") + groups);
 	}
 
 	public void resetStats() {
