@@ -443,7 +443,14 @@ consider: region enter + exit: generic things calls: still call with the real re
 
 ---------------------
 
+
+using rsp without perms plugin: checkout would not perform changes ....
+
+
 PROBLEMS: 
     teleport / respawn / similar: player may have filter permission at from but not at to.
-    switch to delayed check (cancel task on check, remove task on task run), no check in the teleport event.
+    might invalidate task if other events can be used to trigger the check -> move, interact, command. NOTE: reset cahce tiemstamp
     
+use a useLoc.
+
+option to clear cache on changed regions ?

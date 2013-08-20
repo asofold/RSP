@@ -21,6 +21,7 @@ import org.bukkit.Location;
  */
 public class PlayerData {
 	public final String playerName;
+	public final DelayedCheckTask checkTask;
 	/**
 	 * For future use (deny enter?).
 	 */
@@ -54,6 +55,7 @@ public class PlayerData {
 	
 	public PlayerData(final String playerName){
 		this.playerName = playerName;
+		this.checkTask = new DelayedCheckTask(playerName);
 	}
 
 	/**
@@ -240,6 +242,13 @@ public class PlayerData {
 			changed = true;
 		}
 		return changed;
+	}
+	
+	/**
+	 * Set such that next check will re check all ids.
+	 */
+	public void forceCacheExpiration() {
+		tsCache = 0;
 	}
 	
 }

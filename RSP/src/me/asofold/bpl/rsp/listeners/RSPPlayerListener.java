@@ -181,7 +181,7 @@ public class RSPPlayerListener implements Listener{
 		final long ts = useStats ? System.nanoTime() : 0L;
 		final Location to = event.getTo();
 		if (to == null) return;
-		core.check(event.getPlayer().getName(), to);
+		core.checkAndCheckDelayed(event.getPlayer().getName(), to);
 		if (useStats){
 			RSPCore.stats.addStats(RSPCore.PLAYER_PORTAL, System.nanoTime()-ts);
 		}
@@ -194,7 +194,7 @@ public class RSPPlayerListener implements Listener{
 		if ( !core.isWithinBounds(loc)){
 			Bukkit.getLogger().warning("[RSP] Player "+event.getPlayer().getName()+" respawns outside of boundaries or world "+loc.getWorld().getName()+"!");
 		}
-		core.check(event.getPlayer().getName(), loc);
+		core.checkAndCheckDelayed(event.getPlayer().getName(), loc);
 		if ( useStats){
 			RSPCore.stats.addStats(RSPCore.PLAYER_RESPAWN, System.nanoTime()-ts);
 		}
@@ -218,17 +218,17 @@ public class RSPPlayerListener implements Listener{
 		final long ts = useStats ? System.nanoTime() : 0L;
 		final Location to = event.getTo();
 		if (to == null) return;
-		core.check(event.getPlayer().getName(), to);
+		core.checkAndCheckDelayed(event.getPlayer().getName(), to);
 		if (useStats) {
 			RSPCore.stats.addStats(RSPCore.PLAYER_TELEPORT, System.nanoTime() - ts);
 		}
 	}
 	
-	public final void setUseStats(final boolean use){
+	public void setUseStats(final boolean use){
 		useStats = use;
 	}
 	
-	public final boolean getUseStats(){
+	public boolean getUseStats(){
 		return useStats;
 	}
 }

@@ -29,6 +29,7 @@ import me.asofold.bpl.rsp.config.compatlayer.CompatConfig;
 import me.asofold.bpl.rsp.config.compatlayer.CompatConfigFactory;
 import me.asofold.bpl.rsp.permissions.PermissionUtil;
 import me.asofold.bpl.rsp.permissions.TransientMan;
+import me.asofold.bpl.rsp.plshared.Players;
 import me.asofold.bpl.rsp.stats.Stats;
 import me.asofold.bpl.rsp.utils.BlockPos;
 import me.asofold.bpl.rsp.utils.Utils;
@@ -61,19 +62,20 @@ public class RSPCore implements IRSPCore{
 	
 	protected int taskIdUpdateAll = -1;
 	
-	public final static Stats stats = new Stats("[RSP][STATS]");
-	public final static Integer CHECKOUT_PARK = stats.getNewId("CheckoutParked");
-	public final static Integer CHECKOUT_ALL = stats.getNewId("CheckoutAll");
-	public final static Integer SAVE_CHANGES = stats.getNewId("SaveChanges");
-	public final static Integer PLAYER_CHANGED_WORLD = stats.getNewId("CheckWorldChange");
-	public final static Integer PLAYER_LOGIN = stats.getNewId("CheckLogin");
-	public final static Integer PLAYER_JOIN = stats.getNewId("CheckJoin");
-	public final static Integer PLAYER_MOVE = stats.getNewId("CheckMove");
-	public final static Integer VEHICLE_ENTER = stats.getNewId("CheckVehicleEnter");
-	public final static Integer VEHICLE_EXIT = stats.getNewId("CheckVehicleExit");
-	public final static Integer PLAYER_PORTAL = stats.getNewId("CheckPortal");
-	public final static Integer PLAYER_RESPAWN = stats.getNewId("CheckRespawn");
-	public final static Integer PLAYER_TELEPORT = stats.getNewId("CheckTeleport");
+	public static final Stats stats = new Stats("[RSP][STATS]");
+	public static final Integer CHECKOUT_PARK = stats.getNewId("CheckoutParked");
+	public static final Integer CHECKOUT_ALL = stats.getNewId("CheckoutAll");
+	public static final Integer SAVE_CHANGES = stats.getNewId("SaveChanges");
+	public static final Integer PLAYER_CHANGED_WORLD = stats.getNewId("CheckWorldChange");
+	public static final Integer PLAYER_LOGIN = stats.getNewId("CheckLogin");
+	public static final Integer PLAYER_JOIN = stats.getNewId("CheckJoin");
+	public static final Integer DELAYED_CHECK = stats.getNewId("CheckDelayed");
+	public static final Integer PLAYER_MOVE = stats.getNewId("CheckMove");
+	public static final Integer VEHICLE_ENTER = stats.getNewId("CheckVehicleEnter");
+	public static final Integer VEHICLE_EXIT = stats.getNewId("CheckVehicleExit");
+	public static final Integer PLAYER_PORTAL = stats.getNewId("CheckPortal");
+	public static final Integer PLAYER_RESPAWN = stats.getNewId("CheckRespawn");
+	public static final Integer PLAYER_TELEPORT = stats.getNewId("CheckTeleport");
 	
 	final Map<String, PlayerData> playerData = new HashMap<String, PlayerData>();
 	
@@ -237,16 +239,16 @@ public class RSPCore implements IRSPCore{
 		stats.setShowRange(settings.statsShowRange);
 		hookManager.setPermissionSettings(new IPermissionSettings() {
 			@Override
-			public final boolean getUseWorlds() {
+			public boolean getUseWorlds() {
 					return settings.useWorlds;
 			}
 			@Override
-			public final boolean getLowerCaseWorlds() {
+			public boolean getLowerCaseWorlds() {
 				return settings.lowerCaseWorlds;
 			}
 			
 			@Override
-			public final boolean getLowerCasePlayers() {
+			public boolean getLowerCasePlayers() {
 				return settings.lowerCasePlayers;
 			}
 			@Override
@@ -290,11 +292,11 @@ public class RSPCore implements IRSPCore{
 
 
 	
-	public final WorldGuardPlugin getWG(){
+	public WorldGuardPlugin getWG(){
 		return this.wg;
 	}
 	
-	public final void setWG(){
+	public void setWG(){
 		wg = null;
 		Plugin plugin = Bukkit.getServer().getPluginManager().getPlugin("WorldGuard");
 		if (plugin == null) return;
@@ -302,15 +304,15 @@ public class RSPCore implements IRSPCore{
 		if (plugin instanceof WorldGuardPlugin) wg = (WorldGuardPlugin) plugin;
 	}
 
-	public final RSP getPlugin() {
+	public RSP getPlugin() {
 		return triple.plugin;
 	}
 	
-	public final RSPTriple getTriple(){
+	public RSPTriple getTriple(){
 		return triple;
 	}
 
-	public final void setTriple(RSPTriple triple) {
+	public void setTriple(RSPTriple triple) {
 		boolean sched = false;
 		if ( (triple != null) && (triple.plugin != null)){
 			if (this.triple==null || triple.plugin != this.triple.plugin) sched = true;
@@ -344,7 +346,7 @@ public class RSPCore implements IRSPCore{
 	 * @param details
 	 * @return if logged.
 	 */
-	public final boolean logSevere(RSPError error, String details){
+	public boolean logSevere(RSPError error, String details){
 		if ( (minDelayFrequent != 0) && (error != null)){
 			// check if to display this error (again, potentially):
 			long ts = System.currentTimeMillis();
@@ -393,11 +395,31 @@ public class RSPCore implements IRSPCore{
 		return true;
 	}
 	
+	public void checkDelayed(final String playerName) {
+		final long ts = useStats ? System.nanoTime() : 0L;
+		final Player player = Players.getPlayerExact(playerName);
+		if (player != null) {
+			// TODO: More against inconsistent states (clear groups + full re-check)?
+			getData(playerName).forceCacheExpiration();
+			check(playerName, player.getLocation());
+			if (useStats) {
+				RSPCore.stats.addStats(RSPCore.DELAYED_CHECK, System.nanoTime() - ts);
+			}
+		}
+	}
+	
+	public void checkAndCheckDelayed(final String playerName, final Location loc) {
+		// TODO: Mechanics with check: check might remove task for normal moving?
+		// TODO: While registered: other events like interact should also trigger check + cancel.
+		check(playerName, loc);
+		getData(playerName).checkTask.registerIfIdle(this);
+	}
+	
 	/**
 	 * POLICY: If wg is not set, assume all perms to be forfeit as with logout(check all regions, but use cache).
 	 * @param player
 	 */
-	public final void check(final String playerName, final Location loc) {// Player player, Location loc) {
+	public void check(final String playerName, final Location loc) {// Player player, Location loc) {
 //		String playerName = player.getName();
 		// TODO: cleanup for speed !
 		if (loc == null ){ // TODO: SUBJECT TO REMOVAL -> RATHER NOT :)
@@ -637,7 +659,7 @@ public class RSPCore implements IRSPCore{
 	}
 	
 	@Override
-	public final boolean isWithinBounds(final Location loc) {
+	public boolean isWithinBounds(final Location loc) {
 		final World w = loc.getWorld();
 		final String wn = w.getName();
 		final WorldSettings s = worlds.get(wn);
@@ -654,7 +676,9 @@ public class RSPCore implements IRSPCore{
 		// check all given groups or ALL if not checked.
 		if ( checkedOut.size() > maxCheckedOut) releaseCheckedOut();
 		if (!permissions.isAvailable()) return; // TODO: maybe not
-		PlayerData data = getData(playerName);
+		final PlayerData data = getData(playerName);
+		data.forceCacheExpiration();
+		data.checkTask.cancel();
 		Set<Integer> ids = new HashSet<Integer>();
 		if (!data.isChecked){
 			if (heavy) ids.addAll(pdMan.idDefMap.keySet());
@@ -802,7 +826,7 @@ public class RSPCore implements IRSPCore{
 	 * @param user
 	 * @param rids
 	 */
-	public final boolean removePermsById(final String playerName, final Set<Integer> ids){
+	public boolean removePermsById(final String playerName, final Set<Integer> ids){
 		boolean changed = false;
 		boolean trChanged = false;
 		final Map<String, IPermissionUser> uMap = new HashMap<String, IPermissionUser>();
@@ -1102,7 +1126,7 @@ public class RSPCore implements IRSPCore{
 		stats.clear();
 	}	
 	
-	public final WorldSettings getSettings(String world){
+	public WorldSettings getSettings(String world){
 		WorldSettings s = worlds.get(world);
 		if ( s == null) return defaults;
 		else return s;
