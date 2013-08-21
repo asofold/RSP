@@ -14,7 +14,7 @@ import org.bukkit.entity.Player;
 public class ReCheckCommand extends AbstractCommand<RSPCore> {
 
 	public ReCheckCommand(RSPCore access) {
-		super(access, "recheck", "rsp.command.recheck", new String[]{"update", "check"});
+		super(access, "recheck", "rsp.cmd.recheck", new String[]{"update", "check"});
 	}
 
 	@Override
