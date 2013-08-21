@@ -52,6 +52,6 @@ permissions:
           rsp.filter.cmd.rsp: true
 commands:
   rsp:
-     description: 'For managing RSP: /rsp <cmd>... for: | reload | info | stats | stats reset | stats off | stats on | ping ... (permissions)'
+     description: 'For managing RSP: /rsp <cmd>... for: | reload | info | info (player...) | recheck *|(player...) | stats | stats reset | stats off | stats on | ping ... (permissions)'
      usage: 'For managing RSP: /rsp <cmd>... for: | reload | info | stats | stats reset | stats off | stats on | ping ... (permissions)'
      permission: rsp.filter.cmd.rsp
