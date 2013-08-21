@@ -57,6 +57,7 @@ public class Settings {
 	public final long minDelayLogFrequent = 10000;
 	
 	public long lifetimeCache = 12345;
+	public boolean heavyDelayedCheck = false;
 	public long savingPeriod = 0;
 	public boolean saveOnCheck = false;
 	public boolean saveOnCheckOut = false;
@@ -108,6 +109,7 @@ public class Settings {
 		cfg.set("heuristic.lazy-dist", ref.lazyDist);
 		cfg.set("confine.enabled", false);
 		cfg.set("player-cache.lifetime", ref.lifetimeCache);
+		cfg.set("delayed-check-heavy", ref.heavyDelayedCheck);
 		cfg.set("stats.use", ref.useStats);
 		cfg.set("stats.log", ref.logStats);
 		cfg.set("stats.show.range", ref.statsShowRange);
@@ -148,6 +150,7 @@ public class Settings {
 		settings.defaults = new WorldSettings();
 		if (!settings.defaults.fromConfig(cfg, "")) return null;
 		settings.lifetimeCache = cfg.getLong("player-cache.lifetime", settings.lifetimeCache);
+		settings.heavyDelayedCheck = cfg.getBoolean("delayed-check-heavy", settings.heavyDelayedCheck);
 		settings.useStats = cfg.getBoolean("stats.use", settings.useStats);
 		settings.logStats = cfg.getBoolean("stats.log", settings.logStats);
 		settings.statsShowRange = cfg.getBoolean("stats.show.range", settings.statsShowRange);

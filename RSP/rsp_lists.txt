@@ -450,7 +450,10 @@ using rsp without perms plugin: checkout would not perform changes ....
 PROBLEMS: 
     teleport / respawn / similar: player may have filter permission at from but not at to.
     might invalidate task if other events can be used to trigger the check -> move, interact, command. NOTE: reset cahce tiemstamp
-    
-use a useLoc.
+    -> use recheck instead ?
+
+
 
 option to clear cache on changed regions ?
+
+settings are not set correctly (lifetimeCache).

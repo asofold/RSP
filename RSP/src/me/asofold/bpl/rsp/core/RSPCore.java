@@ -92,29 +92,59 @@ public class RSPCore implements IRSPCore{
 	 * Preset to something.
 	 */
 	IPermissions permissions = new SuperPerms();
-	
-	private boolean useStats = true;
 			
-
-	
+	/** Global settings instance. */
+	Settings settings = new Settings();
 	/**
 	 * Default world specific settings.
 	 * Include lazy dist .
 	 */
 	WorldSettings defaults = new WorldSettings();
 	
-	long lifetimeCache = 12345;
-	long savingPeriod = 0;
-	boolean saveOnCheck = false;
-	boolean saveOnCheckOut = false;
-	boolean createPortals = true;
+//	
+//	private boolean useStats = true;
+//	
+//	long lifetimeCache = 12345;
+//	long savingPeriod = 0;
+//	boolean saveOnCheck = false;
+//	boolean saveOnCheckOut = false;
+//	boolean createPortals = true;
+//	
+//	/**
+//	 * Period (ticks) for check parked PlayerData for expiration.
+//	 */
+//	long checkParkedPeriod = 1800; // TODO: -> DefaultSettings	
+//	
+//	long minDelayFrequent = 10000;
+//	
+//	/**
+//	 * Duration after which parked PlayerData is released.
+//	 */
+//	long durExpireParked = 300000;
+//	
+//	/**
+//	 * Ticks to delay till checking further parked PlayerData entries.
+//	 */
+//	long ticksCheckParked = 2;
+//	/**
+//	 * Number of parked PlayerData entries to check out.
+//	 */
+//	int nExpireParked = 1;
+//	
+//	boolean noParking = false;
+//	
+//	boolean saveAtAll = false;
+//	
+//	
+//	
 	
-	/**
-	 * Period (ticks) for check parked PlayerData for expiration.
-	 */
-	long checkParkedPeriod = 1800; // TODO: -> DefaultSettings	
+	///////////////////////////////
+	// Values used internally.
+	///////////////////////////////
+	private final int defaultMaxCheckedOut = 300;
+	int maxCheckedOut = defaultMaxCheckedOut;
 	
-	long minDelayFrequent = 10000;
+	
 	
 	/**
 	 * Last error timestamp of the kind of (frequent) error.
@@ -130,29 +160,6 @@ public class RSPCore implements IRSPCore{
 	 * To remember checked out players and save some time on rejoin.
 	 */
 	final Set<String> checkedOut = new HashSet<String>();
-	
-	/**
-	 * Duration after which parked PlayerData is released.
-	 */
-	long durExpireParked = 300000;
-	
-	/**
-	 * Ticks to delay till checking further parked PlayerData entries.
-	 */
-	long ticksCheckParked = 2;
-	/**
-	 * Number of parked PlayerData entries to check out.
-	 */
-	int nExpireParked = 1;
-	
-	boolean noParking = false;
-	
-	boolean saveAtAll = false;
-	
-	
-	
-	private final int defaultMaxCheckedOut = 300;
-	int maxCheckedOut = defaultMaxCheckedOut;
 	
 	private final HookManager hookManager;
 	
@@ -244,7 +251,7 @@ public class RSPCore implements IRSPCore{
 		hookManager.setPermissionSettings(new IPermissionSettings() {
 			@Override
 			public boolean getUseWorlds() {
-					return settings.useWorlds;
+				return settings.useWorlds;
 			}
 			@Override
 			public boolean getLowerCaseWorlds() {
@@ -257,7 +264,7 @@ public class RSPCore implements IRSPCore{
 			}
 			@Override
 			public boolean getSaveAtAll() {
-				return saveAtAll; // TODO
+				return settings.saveAtAll; // TODO
 			}
 		});
 		// TODO: check consistency
@@ -351,14 +358,14 @@ public class RSPCore implements IRSPCore{
 	 * @return if logged.
 	 */
 	public boolean logSevere(RSPError error, String details){
-		if ( (minDelayFrequent != 0) && (error != null)){
+		if ( (settings.minDelayFrequent != 0) && (error != null)){
 			// check if to display this error (again, potentially):
 			long ts = System.currentTimeMillis();
 			Long ots = errorTs.get(error);
 			if ( ots == null){
 				errorTs.put(error, ts);
 			}
-			else if ( ts-ots<=minDelayFrequent) return false; // ignore
+			else if ( ts-ots<=settings.minDelayFrequent) return false; // ignore
 			else errorTs.put(error, ts);
 		}
 		String message = "[RSP] Serious problem: ";
@@ -400,15 +407,19 @@ public class RSPCore implements IRSPCore{
 	}
 	
 	public void checkDelayed(final String playerName) {
-		final long ts = useStats ? System.nanoTime() : 0L;
+		final long ts = settings.useStats ? System.nanoTime() : 0L;
 		final Player player = Players.getPlayerExact(playerName);
 		if (player != null) {
 			// TODO: More against inconsistent states (clear groups + full re-check)?
-			final PlayerData data = getData(playerName);
-			data.forceCacheExpiration();
-			check(playerName, player.getLocation(useLoc));
+			if (settings.heavyDelayedCheck) {
+				recheck(player, true);
+			} else {
+				final PlayerData data = getData(playerName);
+				data.forceCacheExpiration();
+				check(playerName, player.getLocation(useLoc));
+			}
 			useLoc.setWorld(null);
-			if (useStats) {
+			if (settings.useStats) {
 				RSPCore.stats.addStats(RSPCore.DELAYED_CHECK, System.nanoTime() - ts);
 			}
 		}
@@ -480,7 +491,7 @@ public class RSPCore implements IRSPCore{
 		boolean prepared = false;
 		lazyDist = settings.lazyDist;
 		// Check cache expiration:
-		if (data.checkCache(lifetimeCache)){
+		if (data.checkCache(this.settings.lifetimeCache)){
 			user = permissions.getUser(playerName, worldName);
 			if ( !data.idCache.isEmpty()){
 				user.prepare();
@@ -649,7 +660,7 @@ public class RSPCore implements IRSPCore{
 			if (userChanged) user.applyChanges();
 			else user.discardChanges();
 		}
-		if (saveOnCheck && userChanged) forceSaveChanges(); // TODO: maybe deprecate this anyway.
+		if (this.settings.saveOnCheck && userChanged) forceSaveChanges(); // TODO: maybe deprecate this anyway.
 		
 		// Further general calls.
 		if (!iSetChecks.isEmpty()){
@@ -693,7 +704,7 @@ public class RSPCore implements IRSPCore{
 			ids.addAll(data.idCache);
 		}
 		if (removePermsById(playerName, ids)){
-			if (saveOnCheckOut) forceSaveChanges();
+			if (this.settings.saveOnCheckOut) forceSaveChanges();
 		}
 		data.clearCache();
 		playerData.remove(playerName);
@@ -711,7 +722,7 @@ public class RSPCore implements IRSPCore{
 	 * @param playerName
 	 */
 	public void park( final String playerName){
-		if (noParking){
+		if (this.settings.noParking){
 			checkout(playerName, false);
 			return;
 		}
@@ -727,20 +738,20 @@ public class RSPCore implements IRSPCore{
 	 * @param n 
 	 */
 	public void checkParked(){
-		long ts = System.currentTimeMillis() - durExpireParked;
+		long ts = System.currentTimeMillis() - this.settings.durExpireParked;
 		List<String> rem = new LinkedList<String>();
 		int n = 0;
 		for (String playerName:parked.keySet()){
 			if (parked.get(playerName).tsCache >= ts ) continue;
 			rem.add(playerName);
 			n++;
-			if ( n>= nExpireParked && n<parked.size()){
+			if ( n>= this.settings.nExpireParked && n<parked.size()){
 				if (Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(triple.plugin, new Runnable() {
 					@Override
 					public void run() {
 						checkParked();
 					}
-				}, ticksCheckParked) != -1) break;
+				}, this.settings.ticksCheckParked) != -1) break;
 				else{
 					logSevere(RSPError.FAILED_SCHEDULING_PARKED, null);
 					n = 0;
@@ -748,7 +759,7 @@ public class RSPCore implements IRSPCore{
 			}	
 		}
 		for (String playerName : rem){
-			if (useStats){
+			if (this.settings.useStats){
 				long ns = System.nanoTime();
 				checkout(playerName, false); 
 				stats.addStats(CHECKOUT_PARK, System.nanoTime()-ns);
@@ -811,7 +822,7 @@ public class RSPCore implements IRSPCore{
 		check.addAll(parked.keySet());
 		for (String playerName: check){
 			try{
-				if ( useStats){
+				if (this.settings.useStats){
 					long ns = System.nanoTime();
 					checkout(playerName, heavy);
 					stats.addStats(CHECKOUT_ALL, System.nanoTime()-ns);
@@ -941,13 +952,13 @@ public class RSPCore implements IRSPCore{
 		sched.cancelTasks(triple.plugin);
 		boolean res = true;
 		// Saving task
-		if ( savingPeriod>0){ 
+		if (this.settings.savingPeriod>0){ 
 			if (sched.scheduleSyncRepeatingTask(triple.plugin, new Runnable(){
 				@Override
 				public void run() {
 					onScheduledSave();
 				}
-			}, savingPeriod, savingPeriod) == -1){
+			}, this.settings.savingPeriod, this.settings.savingPeriod) == -1){
 				Bukkit.getServer().getLogger().severe("[RSP] Failed to schedule saving task.");
 				res = false; 
 			}
@@ -958,7 +969,7 @@ public class RSPCore implements IRSPCore{
 			public void run() {
 				checkParked();
 			}
-		}, checkParkedPeriod , checkParkedPeriod) == -1){
+		}, this.settings.checkParkedPeriod , this.settings.checkParkedPeriod) == -1){
 			Bukkit.getServer().getLogger().severe("[RSP] Failed to schedule checkParked task.");
 			res = false;
 		}
@@ -995,9 +1006,9 @@ public class RSPCore implements IRSPCore{
 	 * Force saving of permission changes.
 	 */
 	public void forceSaveChanges() {
-		if (!saveAtAll) return;
+		if (!this.settings.saveAtAll) return;
 		try{
-			if ( useStats){
+			if (this.settings.useStats){
 				long ns = System.nanoTime();
 				permissions.saveChanges();
 				stats.addStats(SAVE_CHANGES, System.nanoTime()-ns);
@@ -1021,7 +1032,7 @@ public class RSPCore implements IRSPCore{
 	}
 	
 	public boolean getCreatePortals(){
-		return createPortals;
+		return this.settings.createPortals;
 	}
 
 	/**
@@ -1045,7 +1056,7 @@ public class RSPCore implements IRSPCore{
 
 	
 	public void setUseStats(boolean use){
-		useStats = use;
+		this.settings.useStats = use;
 		triple.playerListener.setUseStats(use);
 		if (!use){
 			stats.clear();
@@ -1121,7 +1132,7 @@ public class RSPCore implements IRSPCore{
 			}
 		}
 		final Map<String, Integer> groups = transientMan.getGroupPriorityMap(player.getName());
-		if (!groups.isEmpty()) {
+		if (groups != null && !groups.isEmpty()) {
 			builder.append(c1 + " transient-groups:" + c2);
 			for (final Entry<String, Integer> entry : groups.entrySet()) {
 				builder.append(" " + entry.getKey() + "@" + entry.getValue());

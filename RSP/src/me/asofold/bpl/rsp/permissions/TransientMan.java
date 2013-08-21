@@ -43,7 +43,8 @@ public class TransientMan {
 	private final Map<String, PermissionAttachment> attachements = new HashMap<String, PermissionAttachment>(50);
 	
 	/**
-	 * Map lower case player names to Map of lower case group names mapping to priorities (Integer).
+	 * Map lower case player names to Map of lower case group names mapping to
+	 * priorities (Integer). Needs null check for keys.
 	 */
 	private final Map<String, Map<String, Integer>> inGroup = new HashMap<String, Map<String, Integer>>(50);
 	
