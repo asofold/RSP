@@ -1,5 +1,7 @@
 package me.asofold.bpl.rsp.command;
 
+import java.util.List;
+
 import me.asofold.bpl.rsp.core.RSPCore;
 import me.asofold.bpl.rsp.plshared.Players;
 
@@ -12,6 +14,17 @@ public class InfoCommand extends AbstractCommand<RSPCore> {
 	public InfoCommand(RSPCore access) {
 		super(access, "info", "rsp.cmd.info");
 	}
+	
+	
+
+	@Override
+	public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args)
+	{
+		// Tab-complete player names.
+		return null;
+	}
+
+
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String alias, String[] args)
