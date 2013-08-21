@@ -9,9 +9,10 @@ public class RSPCommand extends AbstractCommand<RSPCore> {
 	public RSPCommand(RSPCore access) {
 		super(access, "rsp", "rsp.filter.cmd.rsp");
 		addSubCommands(
-			new ReloadCommand(access),
 			new InfoCommand(access),
 			new PingCommand(access),
+			new ReCheckCommand(access),
+			new ReloadCommand(access),
 			new StatsCommand(access)
 			);
 	}

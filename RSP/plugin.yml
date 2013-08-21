@@ -1,6 +1,6 @@
 name: RSP
 main: me.asofold.bpl.rsp.RSP
-version: 1.6.3
+version: 1.6.4
 softdepend:
 - WorldGuard
 - PermissionsEx
@@ -44,6 +44,10 @@ permissions:
           rsp.filter.cmd.rsp: true
       rsp.cmd.ping:
         description: Allow the ping sub-command (permission info).
+        children:
+          rsp.filter.cmd.rsp: true
+      rsp.cmd.recheck:
+        description: "Force a re-check of players (one, several, all (*))."
         children:
           rsp.filter.cmd.rsp: true
 commands:

@@ -687,13 +687,13 @@ public class RSPCore implements IRSPCore{
 		data.lastValidLoc.setWorld(null);
 		if (!permissions.isAvailable()) return; // TODO: maybe not
 		Set<Integer> ids = new HashSet<Integer>();
-		if (!data.isChecked){
+		if (!data.isChecked) {
 			if (heavy) ids.addAll(pdMan.idDefMap.keySet());
 		} else{
 			ids.addAll(data.idCache);
 		}
 		if (removePermsById(playerName, ids)){
-			if ( saveOnCheckOut ) forceSaveChanges();
+			if (saveOnCheckOut) forceSaveChanges();
 		}
 		data.clearCache();
 		playerData.remove(playerName);
