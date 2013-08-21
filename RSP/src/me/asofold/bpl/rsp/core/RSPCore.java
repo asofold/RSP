@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.logging.Level;
 
 import me.asofold.bpl.rsp.RSP;
 import me.asofold.bpl.rsp.api.IPermissionSettings;
@@ -56,12 +57,22 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
  *
  */
 public class RSPCore implements IRSPCore{
-//	private final boolean DEBUG = true;
-	private WorldGuardPlugin wg = null;
-	private RSPTriple triple = null; 
 	
-	protected int taskIdUpdateAll = -1;
+	//////////////////// ---
+	// STATIC MEMBERS
+	//////////////////// ---
 	
+	private static String grpDetails(final String userName, final String worldName, final String grp){
+		return userName+"@"+worldName+":"+grp;
+	}
+	
+	private static final int defaultMaxCheckedOut = 300;
+	
+	private static final Set<String> reservedRids = new HashSet<String>(Arrays.asList(new String[]{
+			"__global__", "__owner__", "__member__", "__region__"
+	}));
+	
+	// Stats
 	public static final Stats stats = new Stats("[RSP][STATS]");
 	public static final Integer CHECKOUT_PARK = stats.getNewId("CheckoutParked");
 	public static final Integer CHECKOUT_ALL = stats.getNewId("CheckoutAll");
@@ -77,89 +88,35 @@ public class RSPCore implements IRSPCore{
 	public static final Integer PLAYER_RESPAWN = stats.getNewId("CheckRespawn");
 	public static final Integer PLAYER_TELEPORT = stats.getNewId("CheckTeleport");
 	
-	final Map<String, PlayerData> playerData = new HashMap<String, PlayerData>();
 	
-	private final Set<String> reservedRids = new HashSet<String>(Arrays.asList(new String[]{
-			"__global__", "__owner__", "__member__", "__region__"
-	}));
-		
+	////////////////////// ---
+	// INSTANCE MEMBERS
+	////////////////////// ---
+	
+	private WorldGuardPlugin wg = null;
+	private RSPTriple triple = null; 
+
+	/**
+	 * Preset to something.
+	 */
+	private IPermissions permissions = new SuperPerms();
+	
+	//////////////
+	// Settings
+	//////////////
+			
+	/** Global settings instance. */
+	protected Settings settings = new Settings();
+	
 	/**
 	 * General world-specific settings.
 	 */
 	private final  Map <String, WorldSettings> worlds = new HashMap<String, WorldSettings>();
 	
-	/**
-	 * Preset to something.
-	 */
-	IPermissions permissions = new SuperPerms();
-			
-	/** Global settings instance. */
-	Settings settings = new Settings();
-	/**
-	 * Default world specific settings.
-	 * Include lazy dist .
-	 */
-	WorldSettings defaults = new WorldSettings();
-	
-//	
-//	private boolean useStats = true;
-//	
-//	long lifetimeCache = 12345;
-//	long savingPeriod = 0;
-//	boolean saveOnCheck = false;
-//	boolean saveOnCheckOut = false;
-//	boolean createPortals = true;
-//	
-//	/**
-//	 * Period (ticks) for check parked PlayerData for expiration.
-//	 */
-//	long checkParkedPeriod = 1800; // TODO: -> DefaultSettings	
-//	
-//	long minDelayFrequent = 10000;
-//	
-//	/**
-//	 * Duration after which parked PlayerData is released.
-//	 */
-//	long durExpireParked = 300000;
-//	
-//	/**
-//	 * Ticks to delay till checking further parked PlayerData entries.
-//	 */
-//	long ticksCheckParked = 2;
-//	/**
-//	 * Number of parked PlayerData entries to check out.
-//	 */
-//	int nExpireParked = 1;
-//	
-//	boolean noParking = false;
-//	
-//	boolean saveAtAll = false;
-//	
-//	
-//	
 	
 	///////////////////////////////
-	// Values used internally.
+	// Managers and Hooks.
 	///////////////////////////////
-	private final int defaultMaxCheckedOut = 300;
-	int maxCheckedOut = defaultMaxCheckedOut;
-	
-	
-	
-	/**
-	 * Last error timestamp of the kind of (frequent) error.
-	 */
-	Map<RSPError, Long> errorTs = new HashMap<RSPError, Long>();
-	
-	/**
-	 * Parked playerData.
-	 */
-	final Map<String, PlayerData> parked = new HashMap<String, PlayerData>();
-	
-	/**
-	 * To remember checked out players and save some time on rejoin.
-	 */
-	final Set<String> checkedOut = new HashSet<String>();
 	
 	private final HookManager hookManager;
 	
@@ -167,10 +124,51 @@ public class RSPCore implements IRSPCore{
 	
 	private final TransientMan transientMan;
 	
+	/** Registered for checking the ApplicableRegionSet.*/
 	private final List<ISetCheck> iSetChecks = new ArrayList<ISetCheck>();
+	
+	/////////////////
+	// Player Data
+	/////////////////
+	
+	protected int taskIdUpdateAll = -1;
+	
+	/**
+	 * Active players data.
+	 */
+	final Map<String, PlayerData> playerData = new HashMap<String, PlayerData>();
+	
+	/**
+	 * Parked playerData.
+	 */
+	final Map<String, PlayerData> parked = new HashMap<String, PlayerData>();
+	
+	/**
+	 * Maximum size of checked-out storage.
+	 */
+	int maxCheckedOut = defaultMaxCheckedOut;
+	
+	/**
+	 * To remember checked out players and save some time on rejoin.
+	 */
+	final Set<String> checkedOut = new HashSet<String>();
+	
+	///////////////////////
+	// Cache / Temporary
+	///////////////////////
+	
+	/**
+	 * Last error timestamp of the kind of (frequent) error.
+	 */
+	private final Map<RSPError, Long> errorTs = new HashMap<RSPError, Long>();
 	
 	/** For temporary use only, always call setWorld(null) after use. */
 	protected final Location useLoc = new Location(null, 0, 0, 0);
+	
+	
+	////////////////////// ---
+	// METHODS
+	////////////////////// ---
 	
 	public RSPCore(RSPTriple triple){
 		this.setTriple(triple);
@@ -199,33 +197,14 @@ public class RSPCore implements IRSPCore{
 			checkAllPlayers();
 			scheduleTasks();
 		} catch ( Throwable t){
-			// TODO: set default settings.
-			Bukkit.getServer().getLogger().severe("[RSP] Failed to load configuration: "+t.getMessage());
-			t.printStackTrace();
+			Bukkit.getLogger().severe("[RSP] Failed to load configuration: " + t.getMessage());
+			Bukkit.getLogger().log(Level.SEVERE, "[RSP] Exception: ", t);
 			res = false;
 			ref = t;
 		}
-		Bukkit.getPluginManager().callEvent(new RSPReloadEvent( triple.plugin, res, ref));
+		Bukkit.getPluginManager().callEvent(new RSPReloadEvent(triple.plugin, res, ref));
 		return res;
 	}
-	
-	public void checkAllPlayers() {
-		//if (!permissions.isAvailable()) return;
-		for (Player player : Bukkit.getServer().getOnlinePlayers()){
-			try{
-				check(player.getName(), player.getLocation(useLoc));
-				useLoc.setWorld(null);
-			} catch (Throwable t){
-				System.out.println("[RSP] Failed to check player: "+player.getName() );
-			}
-		}
-		
-	}
-
-	public void onScheduledSave(){
-		forceSaveChanges();
-	}
-	
 	
 	boolean uncheckedReloadSettings(){
 		File file = new File(triple.plugin.getDataFolder(), "rsp.yml");
@@ -244,7 +223,7 @@ public class RSPCore implements IRSPCore{
 	public boolean applySettings(CompatConfig cfg){
 		final Settings settings = Settings.fromConfig(cfg);
 		if (settings == null) return false;
-		defaults = settings.defaults;
+		this.settings = settings; // TODO: Order.
 		setUseStats(settings.useStats);
 		stats.setLogStats(settings.logStats);
 		stats.setShowRange(settings.statsShowRange);
@@ -299,9 +278,22 @@ public class RSPCore implements IRSPCore{
 		return true;
 	}
 	
-	
+	public void checkAllPlayers() {
+		//if (!permissions.isAvailable()) return;
+		for (Player player : Bukkit.getServer().getOnlinePlayers()){
+			try{
+				check(player.getName(), player.getLocation(useLoc));
+				useLoc.setWorld(null);
+			} catch (Throwable t){
+				System.out.println("[RSP] Failed to check player: "+player.getName() );
+			}
+		}
+		
+	}
 
-
+	public void onScheduledSave(){
+		forceSaveChanges();
+	}
 	
 	public WorldGuardPlugin getWG(){
 		return this.wg;
@@ -453,7 +445,7 @@ public class RSPCore implements IRSPCore{
 		final PlayerData data = getData(playerName);
 		final String worldName = world.getName();
 		WorldSettings settings = worlds.get(worldName);
-		if (settings == null) settings = defaults;
+		if (settings == null) settings = this.settings.defaults;
 		boolean withinLazyDist = false;
 		int lazyDist = Math.min(settings.lazyDist, data.minLazyDist);
 		if (data.checkPos != null) {
@@ -679,9 +671,12 @@ public class RSPCore implements IRSPCore{
 	public boolean isWithinBounds(final Location loc) {
 		final World w = loc.getWorld();
 		final String wn = w.getName();
-		final WorldSettings s = worlds.get(wn);
-		if ( s == null) return Confinement.isWithinBounds(defaults, loc);
-		else return Confinement.isWithinBounds(s, loc);
+		WorldSettings s = worlds.get(wn);
+		if (s == null) {
+			s = this.settings.defaults;
+			this.worlds.put(wn, s);
+		}
+		return Confinement.isWithinBounds(s, loc);
 	}
 	
 	/**
@@ -1147,12 +1142,10 @@ public class RSPCore implements IRSPCore{
 	
 	public WorldSettings getSettings(String world){
 		WorldSettings s = worlds.get(world);
-		if ( s == null) return defaults;
+		if (s == null) {
+			return settings.defaults;
+		}
 		else return s;
-	}
-	
-	private static String grpDetails(final String userName, final String worldName, final String grp){
-		return userName+"@"+worldName+":"+grp;
 	}
 
 	public void onRemoveFailure(final String userName, final String worldName, final String grp) {
