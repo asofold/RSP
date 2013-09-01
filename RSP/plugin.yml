@@ -1,6 +1,6 @@
 name: RSP
 main: me.asofold.bpl.rsp.RSP
-version: 1.7.0
+version: 1.7.1
 softdepend:
 - WorldGuard
 - PermissionsEx

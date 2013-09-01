@@ -43,7 +43,7 @@ public class PlayerData {
 	/**
 	 * For group mnanipulations.
 	 */
-	public final PrioMap<String> groups = new PrioMap<String>(8, 0.3f );
+	public final PrioMap<String> groups = new PrioMap<String>(8, 0.3f);
 	
 //	/**
 //	 * Groups to add. Used while check ONLY.
@@ -105,16 +105,16 @@ public class PlayerData {
 	 * @param id
 	 * @return If any groups have been added (might or might not have effect on permissions later).
 	 */
-	public final boolean checkEnter(final IPermissionUser user, final PermDefData data, final Integer id ){
+	public final boolean checkEnter(final IPermissionUser user, final PermDefData data, final Integer id){
 		idCache.add(id);
 		boolean changed = false;
 		// check remEnter
 		for (final PermDef def : data.defRemEnter){
 			if (def.ignorePermName != null){
-				if (user.has( def.ignorePermName)) continue; // TODO: subject to policy
+				if (user.has(def.ignorePermName)) continue; // TODO: subject to policy
 			}
 			if (def.filterPermission != null){
-				if ( !user.has( def.filterPermission)) continue;
+				if (!user.has(def.filterPermission)) continue;
 			}
 //			grpRem.addAll(def.grpRemEnter);
 			for (final String grp : def.grpRemEnter){
@@ -124,11 +124,11 @@ public class PlayerData {
 		}
 		// check addEnter
 		for (final PermDef def : data.defAddEnter){
-			if ( def.ignorePermName != null ){
-				if (user.has(def.ignorePermName )) continue;
+			if (def.ignorePermName != null){
+				if (user.has(def.ignorePermName)) continue;
 			}
 			if (def.filterPermission != null){
-				if ( !user.has( def.filterPermission)) continue;
+				if (!user.has(def.filterPermission)) continue;
 			}
 //			grpAdd.addAll(def.grpAddEnter);
 			for (final String grp : def.grpAddEnter){
@@ -167,10 +167,10 @@ public class PlayerData {
 		// Check remExit:
 		for (final PermDef def : data.defRemExit){
 			if (def.ignorePermName != null){
-				if (user.has( def.ignorePermName)) continue; // TODO: subject to policy
+				if (user.has(def.ignorePermName)) continue; // TODO: subject to policy
 			}
 			if (def.filterPermission != null){
-				if ( !user.has( def.filterPermission)) continue;
+				if (!user.has(def.filterPermission)) continue;
 			}
 //			grpRem.addAll(def.grpRemExit);
 			for (final String grp : def.grpRemExit){
@@ -180,11 +180,11 @@ public class PlayerData {
 		}
 		// Check addExit:
 		for (final PermDef def : data.defAddExit){
-			if ( def.ignorePermName != null ){
-				if (user.has(def.ignorePermName )) continue;
+			if (def.ignorePermName != null){
+				if (user.has(def.ignorePermName)) continue;
 			}
 			if (def.filterPermission != null){
-				if ( !user.has( def.filterPermission)) continue;
+				if (!user.has(def.filterPermission)) continue;
 			}
 //			grpAdd.addAll(def.grpAddExit);
 			for (final String grp : def.grpAddExit){
@@ -194,7 +194,7 @@ public class PlayerData {
 		}		
 		// check calls:
 		for (final PermDef def : data.callOnExit){
-			for ( IRegionExit call : def.callOnExit){
+			for (IRegionExit call : def.callOnExit){
 				try{
 					call.onRegionExit(playerName, data.worldName, data.rid, def.defName);
 				} catch(final Throwable t){
@@ -216,25 +216,21 @@ public class PlayerData {
 	 * @param id
 	 * @return If any groups have been added (might or might not have effect on permissions later).
 	 */
-	public final boolean checkExpire(final IPermissionUser user, final PermDefData data, final Integer id ){
+	public final boolean checkExpire(final IPermissionUser user, final PermDefData data, final Integer id){
 		boolean changed = false;
 		for (final PermDef def : data.defAddEnter){
-			if (def.ignorePermName != null){
-				if (user.has( def.ignorePermName)){
-					// no removing here
-					continue; 
-				}
+			if (def.ignorePermName != null && user.has(def.ignorePermName)){
+				// no removing here
+				continue; 
 			}
-			if (def.filterPermission != null){
-				if (!user.has(def.filterPermission)){
-					// The permission might have been removed.
+			if (def.filterPermission != null && !user.has(def.filterPermission)){
+				// The permission might have been removed.
 //					grpRem.addAll(def.grpAddEnter);
-					for (final String grp : def.grpAddEnter){
-						groups.updateRem(grp, def.priority);
-					}
-					changed = true;
-					continue;
+				for (final String grp : def.grpAddEnter){
+					groups.updateRem(grp, def.priority);
 				}
+				changed = true;
+				continue;
 			}
 //			grpAdd.addAll(def.grpAddEnter);
 			for (final String grp : def.grpAddEnter){

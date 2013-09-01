@@ -196,7 +196,7 @@ public class RSPCore implements IRSPCore{
 			transientMan.updateChildrenPermissions();
 			checkAllPlayers();
 			scheduleTasks();
-		} catch ( Throwable t){
+		} catch (Throwable t){
 			Bukkit.getLogger().severe("[RSP] Failed to load configuration: " + t.getMessage());
 			Bukkit.getLogger().log(Level.SEVERE, "[RSP] Exception: ", t);
 			res = false;
@@ -210,7 +210,7 @@ public class RSPCore implements IRSPCore{
 		File file = new File(triple.plugin.getDataFolder(), "rsp.yml");
 		CompatConfig cfg = CompatConfigFactory.getConfig(file);
 		boolean changed = false;
-		if ( !file.exists() ){
+		if (!file.exists()){
 			changed = true;
 		} else{
 			cfg.load();
@@ -266,7 +266,7 @@ public class RSPCore implements IRSPCore{
 			if (!pm.isPluginEnabled(n)){
 				try{
 					pm.enablePlugin(plg);
-				} catch ( Throwable t){
+				} catch (Throwable t){
 					Bukkit.getServer().getLogger().severe("[RSP] Failed to enable plugin '"+n+"': "+t.getMessage());
 					t.printStackTrace();
 				}
@@ -285,7 +285,7 @@ public class RSPCore implements IRSPCore{
 				check(player.getName(), player.getLocation(useLoc));
 				useLoc.setWorld(null);
 			} catch (Throwable t){
-				System.out.println("[RSP] Failed to check player: "+player.getName() );
+				System.out.println("[RSP] Failed to check player: "+player.getName());
 			}
 		}
 		
@@ -317,7 +317,7 @@ public class RSPCore implements IRSPCore{
 
 	public void setTriple(RSPTriple triple) {
 		boolean sched = false;
-		if ( (triple != null) && (triple.plugin != null)){
+		if ((triple != null) && (triple.plugin != null)){
 			if (this.triple==null || triple.plugin != this.triple.plugin) sched = true;
 		}
 		this.triple = triple;
@@ -333,9 +333,9 @@ public class RSPCore implements IRSPCore{
 	final PlayerData getData(final String playerName){
 		// Data from active players:
 		PlayerData data = playerData.get(playerName);
-		if ( data != null ) return data;
+		if (data != null) return data;
 		data = parked.remove(playerName); // Data from parked players:
-		if ( data == null ){
+		if (data == null){
 			data = new PlayerData(playerName);	// Newly created player data
 			checkedOut.remove(playerName); // if that should be the case.
 		}
@@ -350,14 +350,14 @@ public class RSPCore implements IRSPCore{
 	 * @return if logged.
 	 */
 	public boolean logSevere(RSPError error, String details){
-		if ( (settings.minDelayFrequent != 0) && (error != null)){
+		if ((settings.minDelayFrequent != 0) && (error != null)){
 			// check if to display this error (again, potentially):
 			long ts = System.currentTimeMillis();
 			Long ots = errorTs.get(error);
-			if ( ots == null){
+			if (ots == null){
 				errorTs.put(error, ts);
 			}
-			else if ( ts-ots<=settings.minDelayFrequent) return false; // ignore
+			else if (ts-ots<=settings.minDelayFrequent) return false; // ignore
 			else errorTs.put(error, ts);
 		}
 		String message = "[RSP] Serious problem: ";
@@ -393,7 +393,7 @@ public class RSPCore implements IRSPCore{
 			message += "Failed to remove a group.";
 			break;
 		}
-		if ( details != null) message += " (details: "+details+")";
+		if (details != null) message += " (details: "+details+")";
 		triple.plugin.getServer().getLogger().severe(message);
 		return true;
 	}
@@ -431,7 +431,7 @@ public class RSPCore implements IRSPCore{
 	public void check(final String playerName, final Location loc) {// Player player, Location loc) {
 //		String playerName = player.getName();
 		// TODO: cleanup for speed !
-		if (loc == null ){ // TODO: SUBJECT TO REMOVAL -> RATHER NOT :)
+		if (loc == null){ // TODO: SUBJECT TO REMOVAL -> RATHER NOT :)
 			checkout(playerName, false);
 			logSevere(RSPError.NULL_LOCATION, "check: " + playerName);
 			return;
@@ -453,9 +453,9 @@ public class RSPCore implements IRSPCore{
 		}
 		if (settings.confine && !withinLazyDist){
 			// TODO: This might keep permissions, which are meant to be removed. [Might add some abuse protection, checkout on abuse.]
-			if (!Confinement.checkConfinement(settings, data, loc) ) return;
+			if (!Confinement.checkConfinement(settings, data, loc)) return;
 		}
-		if ( wg == null){ // TODO: SUBJECT TO REMOVAL (?)
+		if (wg == null){ // TODO: SUBJECT TO REMOVAL (?)
 			// TODO: check checked out players :)
 			checkout(playerName, false);
 			logSevere(RSPError.NOT_PRESENT_REGIONS, "check");
@@ -466,7 +466,7 @@ public class RSPCore implements IRSPCore{
 			return;
 		}
 		final Map<String, Integer>  ridIdMap = pdMan.regionIdMap.get(worldName);
-		if ( ridIdMap == null){
+		if (ridIdMap == null){
 			// no defs in that world
 			// TODO: set checked so faster return must be possible!
 			// TODO: maybe set checkPos to have lazydist applied !
@@ -485,10 +485,10 @@ public class RSPCore implements IRSPCore{
 		// Check cache expiration:
 		if (data.checkCache(this.settings.lifetimeCache)){
 			user = permissions.getUser(playerName, worldName);
-			if ( !data.idCache.isEmpty()){
+			if (!data.idCache.isEmpty()){
 				user.prepare();
 				prepared = true;
-				for ( Integer id : data.idCache ){
+				for (Integer id : data.idCache){
 					final PermDefData pd = pdMan.idDefMap.get(id);
 					if (pd == null) continue; // TODO: maybe remove (contract	).
 					if (data.checkExpire(user, pd, id)) {
@@ -588,7 +588,7 @@ public class RSPCore implements IRSPCore{
 		
 		// Check for ids to remove ---
 		
-		if (nMatched < nActive ){ // TODO: consistency of this with PermDefdata guaranteed?
+		if (nMatched < nActive){ // TODO: consistency of this with PermDefdata guaranteed?
 			// REGION EXIT
 			// needs adjustment ("complicated") !
 			// check which have to be removed. => might need a permdef-name cache as well (reference count)?
@@ -686,7 +686,7 @@ public class RSPCore implements IRSPCore{
 	 */
 	public void checkout(String playerName, boolean heavy){ //Player player) {
 		// check all given groups or ALL if not checked.
-		if ( checkedOut.size() > maxCheckedOut) releaseCheckedOut();
+		if (checkedOut.size() > maxCheckedOut) releaseCheckedOut();
 		final PlayerData data = getData(playerName);
 		data.forceCacheExpiration();
 		data.checkTask.cancel();
@@ -716,13 +716,13 @@ public class RSPCore implements IRSPCore{
 	 * Park PlayerData.
 	 * @param playerName
 	 */
-	public void park( final String playerName){
+	public void park(final String playerName){
 		if (this.settings.noParking){
 			checkout(playerName, false);
 			return;
 		}
 		PlayerData data = playerData.remove(playerName);
-		if ( data==null ) return;
+		if (data==null) return;
 		data.tsCache = System.currentTimeMillis(); // TODO: maybe use extra ts.
 		parked.put(playerName, data);
 	}
@@ -737,10 +737,10 @@ public class RSPCore implements IRSPCore{
 		List<String> rem = new LinkedList<String>();
 		int n = 0;
 		for (String playerName:parked.keySet()){
-			if (parked.get(playerName).tsCache >= ts ) continue;
+			if (parked.get(playerName).tsCache >= ts) continue;
 			rem.add(playerName);
 			n++;
-			if ( n>= this.settings.nExpireParked && n<parked.size()){
+			if (n>= this.settings.nExpireParked && n<parked.size()){
 				if (Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(triple.plugin, new Runnable() {
 					@Override
 					public void run() {
@@ -791,11 +791,11 @@ public class RSPCore implements IRSPCore{
 
 	public void recheckAllPlayers() {
 //		if (!permissions.isAvailable()) return;
-		for ( Player player : Bukkit.getServer().getOnlinePlayers()){
+		for (Player player : Bukkit.getServer().getOnlinePlayers()){
 			try{
 				recheck(player, true);
 			} catch (Throwable t){
-				System.out.println("[RSP] Failed to recheck player: "+player.getName() );
+				System.out.println("[RSP] Failed to recheck player: "+player.getName());
 			}
 		}
 	}
@@ -807,8 +807,8 @@ public class RSPCore implements IRSPCore{
 	public void checkoutAllPlayers(boolean heavy) {
 		// if (!permissions.isAvailable()) return;
 		Collection<String> check = new LinkedList<String>();
-		if ( heavy){
-			for ( Player player : Bukkit.getServer().getOnlinePlayers()){
+		if (heavy){
+			for (Player player : Bukkit.getServer().getOnlinePlayers()){
 				check.add(player.getName());
 			}
 		} else{
@@ -824,13 +824,13 @@ public class RSPCore implements IRSPCore{
 				}
 				else checkout(playerName, heavy);
 			} catch (Throwable t){
-				System.out.println("[RSP] Failed to checkout player: "+playerName );
+				System.out.println("[RSP] Failed to checkout player: "+playerName);
 			}
-//			if ( saveOnCheckOutAll ){
+//			if (saveOnCheckOutAll){
 ////				permissions.getUser(playerName).save();
 //			}
 		}
-		if ( checkedOut.size() > maxCheckedOut) releaseCheckedOut(); // TODO: 
+		if (checkedOut.size() > maxCheckedOut) releaseCheckedOut(); // TODO: 
 	}
 	
 	/**
@@ -844,9 +844,9 @@ public class RSPCore implements IRSPCore{
 		boolean changed = false;
 		boolean trChanged = false;
 		final Map<String, IPermissionUser> uMap = new HashMap<String, IPermissionUser>();
-		for ( Integer id: ids){
+		for (Integer id: ids){
 			final PermDefData defs = pdMan.idDefMap.get(id);
-			if ( defs == null) continue;
+			if (defs == null) continue;
 			final IPermissionUser user;
 			if (uMap.containsKey(defs.worldName)){ // TODO: this is crap there should only be one world involved.
 				user = uMap.get(defs.worldName);
@@ -856,18 +856,18 @@ public class RSPCore implements IRSPCore{
 				user.prepare();
 				uMap.put(defs.worldName, user);
 			}
-			for( PermDef def : defs.defRemExit){
+			for(PermDef def : defs.defRemExit){
 				if (def == null) continue; // safety
 				if (def.ignorePermName != null){
 					if (user.has(def.ignorePermName)) continue; // TOOD: policy.
 				}
 				// Do mind that the filter-permission is not checked here (!).
 				// remove perm groups
-				for ( String gr : def.grpRemExit ){
+				for (String gr : def.grpRemExit){
 					if (transientMan.isTransient(gr)){
 						if (transientMan.removeGroupFromPlayer(playerName, gr, false)) trChanged = true;
 					}
-					else if ( user.inGroup(gr)) {
+					else if (user.inGroup(gr)) {
 						user.removeGroup(gr);
 						changed = true;
 					}
@@ -895,7 +895,7 @@ public class RSPCore implements IRSPCore{
 		checkoutAllPlayers(false);
 		try {
 			forceSaveChanges();
-		} catch ( Throwable t){
+		} catch (Throwable t){
 			Bukkit.getServer().getLogger().severe("[RSP] clearAllPermDefs: Failed to save changes.");
 		}
 		pdMan.removeAllPermDef();
@@ -907,9 +907,9 @@ public class RSPCore implements IRSPCore{
 	 * @param perm
 	 * @return
 	 */
-	public boolean hasPermission( CommandSender sender, String perm){
+	public boolean hasPermission(CommandSender sender, String perm){
 		if (!permissions.isAvailable()) return sender.isOp();
-		else if ( sender instanceof Player ){
+		else if (sender instanceof Player){
 			Player player = (Player)sender;
 			return permissions.getUser(player.getName(), player.getWorld().getName()).has(perm);
 		} else return sender.isOp();
@@ -940,7 +940,7 @@ public class RSPCore implements IRSPCore{
 	}
 
 	public boolean scheduleTasks() {
-		if ( triple == null ||triple.plugin==null){
+		if (triple == null ||triple.plugin==null){
 			Utils.warn("scheduleTasks: no plugin present.");
 		}
 		BukkitScheduler sched = Bukkit.getServer().getScheduler();
@@ -1009,7 +1009,7 @@ public class RSPCore implements IRSPCore{
 				stats.addStats(SAVE_CHANGES, System.nanoTime()-ns);
 			}
 			else permissions.saveChanges();
-		} catch ( Throwable t){
+		} catch (Throwable t){
 			if (logSevere(RSPError.SAVE_PERMISSIONS, t.getMessage())) t.printStackTrace();
 		}
 	}
@@ -1020,8 +1020,8 @@ public class RSPCore implements IRSPCore{
 		Integer id = pdMan.getId(worldName, rid);
 		if (id == null) return out;
 		// TODO: keep them in memory right away !
-		for ( PlayerData data : playerData.values()){
-			if ( data.idCache.contains(id)) out.add(data.playerName);
+		for (PlayerData data : playerData.values()){
+			if (data.idCache.contains(id)) out.add(data.playerName);
 		}
 		return out;
 	}
@@ -1035,12 +1035,12 @@ public class RSPCore implements IRSPCore{
 	 * TODO: Depending on settings return directly or do other checks to decide.
 	 */
 	public void mightSaveChanges() {
-		if ( permissions == null) return; // TODO: CHECK IF POSSIBLE
+		if (permissions == null) return; // TODO: CHECK IF POSSIBLE
 		boolean available = false;
 		try{
 			available = permissions.isAvailable();
 		} catch (Throwable t){
-			if ( logSevere(RSPError.ERROR_PERMISSIONS,t.getMessage()) ) t.printStackTrace();
+			if (logSevere(RSPError.ERROR_PERMISSIONS,t.getMessage())) t.printStackTrace();
 		}
 		if (available) forceSaveChanges(); 
 	}
@@ -1063,16 +1063,16 @@ public class RSPCore implements IRSPCore{
 		int linksize =0;
 		int worlds = 0;
 		int regions = 0;
-		for ( String wn : pdMan.regionIdMap.keySet()){
+		for (String wn : pdMan.regionIdMap.keySet()){
 			World world = Bukkit.getServer().getWorld(wn);
-			if ( world == null) continue; // only consider valid worlds !
+			if (world == null) continue; // only consider valid worlds !
 			Map<?,?> m = pdMan.regionIdMap.get(wn);
-			if ( m==null) continue;
+			if (m==null) continue;
 			int s = m.size();
-			if ( s==0 ) continue;
+			if (s==0) continue;
 			linksize += s;
 			worlds++;
-			if ( wg!=null){
+			if (wg!=null){
 				regions += wg.getRegionManager(world).size();
 			}
 		}
@@ -1080,17 +1080,17 @@ public class RSPCore implements IRSPCore{
 		sender.sendMessage(msg);
 		String[] sn = new String[]{"playerData", "parked", "checkedOut"};
 		Set<?>[] sets = new Set<?>[]{playerData.keySet(), parked.keySet(), checkedOut};
-		for ( int i=0; i<sets.length; i++){
-			for ( int j=i+1; j<sets.length; j++){
+		for (int i=0; i<sets.length; i++){
+			for (int j=i+1; j<sets.length; j++){
 				@SuppressWarnings("unchecked")
 				Set<Object> other = (Set<Object>) sets[j];
 				List<String> found = new LinkedList<String>();
-				for ( Object obj : sets[i]){
-					if ( other.contains(obj)){
-						found.add( (String) obj);
+				for (Object obj : sets[i]){
+					if (other.contains(obj)){
+						found.add((String) obj);
 					}
 				}
-				if ( !found.isEmpty()){
+				if (!found.isEmpty()){
 					sender.sendMessage("[RSP] Inconsistency (players both in "+sn[i]+"->"+sn[j]+"): "+Utils.join(found, ", "));
 				}
 			}
