@@ -233,9 +233,10 @@ public class PlayerData {
 				continue;
 			}
 //			grpAdd.addAll(def.grpAddEnter);
-			for (final String grp : def.grpAddEnter){
-				groups.updateAdd(grp, def.priority);
-			}
+			// No Adding here, reason: Check for regions are needed first.
+//			for (final String grp : def.grpAddEnter){
+//				groups.updateAdd(grp, def.priority);
+//			}
 			changed = true;
 		}
 		return changed;
