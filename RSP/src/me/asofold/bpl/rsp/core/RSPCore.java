@@ -483,7 +483,8 @@ public class RSPCore implements IRSPCore{
 		boolean prepared = false;
 		lazyDist = settings.lazyDist;
 		// Check cache expiration:
-		if (data.checkCache(this.settings.lifetimeCache)){
+		final boolean checkExpire = data.checkCache(this.settings.lifetimeCache);
+		if (checkExpire){
 			user = permissions.getUser(playerName, worldName);
 			if (!data.idCache.isEmpty()){
 				user.prepare();
@@ -598,12 +599,6 @@ public class RSPCore implements IRSPCore{
 				if (!matched.contains(id)){
 					// TODO: check if not inside of add + police ?
 					rem.add(id);
-				} else {
-					// Group kept.
-					final PermDefData defs = pdMan.idDefMap.get(id);
-					if (defs != null) {
-						lazyDist = Math.min(lazyDist, defs.minLazyDist);
-					}
 				}
 			}
 			if (!rem.isEmpty()){
@@ -614,20 +609,28 @@ public class RSPCore implements IRSPCore{
 				for (final Integer id : rem){
 					final PermDefData defs = pdMan.idDefMap.get(id);
 					if (defs == null) continue; // TODO: internal error
-					if (data.checkExit(user, defs, id)) groupsChanged = true;
+					if (data.checkExit(user, defs, id)) {
+						groupsChanged = true;
+					}
 				}
 			}
-		} else {
-			// else assert nMatched == active.size();
-			for (final Integer id : active){
-				// Group kept.
-				final PermDefData defs = pdMan.idDefMap.get(id);
-				if (defs != null) {
-					lazyDist = Math.min(lazyDist, defs.minLazyDist);
+		} 
+		// else assert nMatched == active.size();		
+		
+		// Check through active for lazy dist.
+		for (final Integer id : active){
+			// Group kept.
+			final PermDefData defs = pdMan.idDefMap.get(id);
+			if (defs != null) {
+				lazyDist = Math.min(lazyDist, defs.minLazyDist);
+				if (checkExpire || groupsChanged) {
+					if (data.checkEnter(user, defs, id, false)) {
+						groupsChanged = true;
+					}
 				}
 			}
 		}
-		
+				
 		// add perms for new ids:
 		// REGION ENTER [def eneter, actually]
 		if (!newIds.isEmpty()){
@@ -637,22 +640,36 @@ public class RSPCore implements IRSPCore{
 			}
 			for (Integer id : newIds){
 				final PermDefData defs = pdMan.idDefMap.get(id);
-				if (defs == null) continue; // TODO: internal error.
+				if (defs == null) {
+					// TODO: internal error.	
+					continue; 
+				}
 				lazyDist = Math.min(lazyDist, defs.minLazyDist);
-				if (data.checkEnter(user, defs, id)) groupsChanged = true;
+				if (data.checkEnter(user, defs, id, true)) {
+					groupsChanged = true;
+				}
 				// TODO: also add others ?
 			}
 		}
+		
 		data.minLazyDist = lazyDist;
 		data.isChecked = true;
 		if (groupsChanged){
-			if (PermissionUtil.changeGroups(playerName, transientMan, user, data.groups, true, false)) userChanged = true;
+			if (PermissionUtil.changeGroups(playerName, transientMan, user, data.groups, true, false)) {
+				userChanged = true;
+			}
 		}
 		if (prepared){
-			if (userChanged) user.applyChanges();
-			else user.discardChanges();
+			if (userChanged) {
+				user.applyChanges();
+			}
+			else {
+				user.discardChanges();
+			}
 		}
-		if (this.settings.saveOnCheck && userChanged) forceSaveChanges(); // TODO: maybe deprecate this anyway.
+		if (this.settings.saveOnCheck && userChanged) {
+			forceSaveChanges(); // TODO: maybe deprecate this anyway.
+		}
 		
 		// Further general calls.
 		if (!iSetChecks.isEmpty()){

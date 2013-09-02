@@ -105,7 +105,7 @@ public class PlayerData {
 	 * @param id
 	 * @return If any groups have been added (might or might not have effect on permissions later).
 	 */
-	public final boolean checkEnter(final IPermissionUser user, final PermDefData data, final Integer id){
+	public final boolean checkEnter(final IPermissionUser user, final PermDefData data, final Integer id, final boolean processCalls){
 		idCache.add(id);
 		boolean changed = false;
 		// check remEnter
@@ -137,15 +137,17 @@ public class PlayerData {
 			changed = true;
 		}
 		// check calls:
-		for (final PermDef def : data.callOnEnter){
-			for (final IRegionEnter call : def.callOnEnter){
-				try{
-					call.onRegionEnter(playerName, data.worldName, data.rid, def.defName);
-				} catch(final Throwable t){
-					// TODO: add other info
-					Bukkit.getServer().getLogger().severe("rsp - could not call on enter for permdef '"+def.defName+"': "+t.getMessage());
-					t.printStackTrace();
-					// TODO: maybe remove permdef
+		if (processCalls) {
+			for (final PermDef def : data.callOnEnter){
+				for (final IRegionEnter call : def.callOnEnter){
+					try{
+						call.onRegionEnter(playerName, data.worldName, data.rid, def.defName);
+					} catch(final Throwable t){
+						// TODO: add other info
+						Bukkit.getServer().getLogger().severe("rsp - could not call on enter for permdef '"+def.defName+"': "+t.getMessage());
+						t.printStackTrace();
+						// TODO: maybe remove permdef
+					}
 				}
 			}
 		}
@@ -221,6 +223,7 @@ public class PlayerData {
 		for (final PermDef def : data.defAddEnter){
 			if (def.ignorePermName != null && user.has(def.ignorePermName)){
 				// no removing here
+				// TODO: Change this ?
 				continue; 
 			}
 			if (def.filterPermission != null && !user.has(def.filterPermission)){
