@@ -110,11 +110,11 @@ public class PlayerData {
 		boolean changed = false;
 		// check remEnter
 		for (final PermDef def : data.defRemEnter){
-			if (def.ignorePermName != null){
-				if (user.has(def.ignorePermName)) continue; // TODO: subject to policy
+			if (def.ignoreRemove(user)) {
+				continue;
 			}
-			if (def.filterPermission != null){
-				if (!user.has(def.filterPermission)) continue;
+			else if (def.filterPermission != null && !user.has(def.filterPermission)) {
+				continue;
 			}
 //			grpRem.addAll(def.grpRemEnter);
 			for (final String grp : def.grpRemEnter){
@@ -124,11 +124,11 @@ public class PlayerData {
 		}
 		// check addEnter
 		for (final PermDef def : data.defAddEnter){
-			if (def.ignorePermName != null){
-				if (user.has(def.ignorePermName)) continue;
+			if (def.ignoreAdd(user)) {
+				continue;
 			}
-			if (def.filterPermission != null){
-				if (!user.has(def.filterPermission)) continue;
+			else if (def.filterPermission != null && !user.has(def.filterPermission)) {
+				continue;
 			}
 //			grpAdd.addAll(def.grpAddEnter);
 			for (final String grp : def.grpAddEnter){
@@ -168,11 +168,11 @@ public class PlayerData {
 		boolean changed = false;
 		// Check remExit:
 		for (final PermDef def : data.defRemExit){
-			if (def.ignorePermName != null){
-				if (user.has(def.ignorePermName)) continue; // TODO: subject to policy
+			if (def.ignoreRemove(user)) {
+				continue;
 			}
-			if (def.filterPermission != null){
-				if (!user.has(def.filterPermission)) continue;
+			if (def.filterPermission != null && !user.has(def.filterPermission)) {
+				continue;
 			}
 //			grpRem.addAll(def.grpRemExit);
 			for (final String grp : def.grpRemExit){
@@ -182,11 +182,11 @@ public class PlayerData {
 		}
 		// Check addExit:
 		for (final PermDef def : data.defAddExit){
-			if (def.ignorePermName != null){
-				if (user.has(def.ignorePermName)) continue;
+			if (def.ignoreAdd(user)) {
+				continue;
 			}
-			if (def.filterPermission != null){
-				if (!user.has(def.filterPermission)) continue;
+			if (def.filterPermission != null && !user.has(def.filterPermission)) {
+				continue;
 			}
 //			grpAdd.addAll(def.grpAddExit);
 			for (final String grp : def.grpAddExit){
@@ -221,9 +221,8 @@ public class PlayerData {
 	public final boolean checkExpire(final IPermissionUser user, final PermDefData data, final Integer id){
 		boolean changed = false;
 		for (final PermDef def : data.defAddEnter){
-			if (def.ignorePermName != null && user.has(def.ignorePermName)){
+			if (def.ignoreRemove(user)){
 				// no removing here
-				// TODO: Change this ?
 				continue; 
 			}
 			if (def.filterPermission != null && !user.has(def.filterPermission)){

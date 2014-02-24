@@ -447,7 +447,7 @@ consider: region enter + exit: generic things calls: still call with the real re
 using rsp without perms plugin: checkout would not perform changes ....
 
 
-PROBLEMS: 
+PROBLEMS:
     teleport / respawn / similar: player may have filter permission at from but not at to.
     might invalidate task if other events can be used to trigger the check -> move, interact, command. NOTE: reset cahce tiemstamp
     -> use recheck instead ?
@@ -457,3 +457,9 @@ PROBLEMS:
 option to clear cache on changed regions ?
 
 settings are not set correctly (lifetimeCache).
+
+
+(!) Ensure ignore perm does not prevent removal due to region exit [have-inside]. ~ can/should it be distinguished from remove-exit etc.?
+    alt: Add flag to remove groups if ignored to permdefs. ~ remove-if-ignored: false (default) | true
+    alt2: Fine grained perms: ignore-add-perm + ignore-remove-perm (+ ignore-perm)
+

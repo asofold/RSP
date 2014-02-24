@@ -30,6 +30,8 @@ public class ConfigPermDef {
 	
 	final String defName;
 	String ignorePerm = null;
+	String ignoreAddPerm = null;
+	String ignoreRemovePerm = null;
 	String filterPerm = null;
 	final Map<GroupUse, Set<String>> groups = new LinkedHashMap<GroupUse, Set<String>>();
 	final List<IRegionEnter> callOnEnter = new LinkedList<IRegionEnter>();
@@ -60,15 +62,19 @@ public class ConfigPermDef {
 	}
 	
 	public ConfigPermDef(String defName, String ignorePerm, String filterPerm, int priority, int lazyDist){
+		this(defName, ignorePerm, null, null, filterPerm, priority, lazyDist);
+	}
+	
+	public ConfigPermDef(String defName, String ignorePerm, String ignoreAddPerm, String ignoreRemovePerm, String filterPerm, int priority, int lazyDist){
 		if ( defName == null) throw new IllegalArgumentException("defName must be set.");
 		this.defName = defName;
 		this.ignorePerm = ignorePerm;
+		this.ignoreAddPerm = ignoreAddPerm;
+		this.ignoreRemovePerm = ignoreRemovePerm;
 		this.filterPerm = filterPerm;
 		this.priority = priority;
 		this.lazyDist = lazyDist;
 	}
-	
-	
 	
 	/**
 	 * 
@@ -112,10 +118,12 @@ public class ConfigPermDef {
 		for ( String defName : defNames){
 			String defBase = prefix+"."+defName+".";
 			String ignorePerm = cfg.getString(defBase+"ignore-perm", null);
+			String ignoreAddPerm = cfg.getString(defBase+"ignore-add-perm", null);
+			String ignoreRemovePerm = cfg.getString(defBase+"ignore-remove-perm", null);
 			String filterPerm = cfg.getString(defBase+"filter-perm", null);
 			int priority = cfg.getInt(defBase + "priority", 0);
 			int lazyDist = Math.max(0, cfg.getInt(defBase + "lazy-dist", Integer.MAX_VALUE));
-			ConfigPermDef def = new ConfigPermDef(defName, ignorePerm, filterPerm, priority, lazyDist);
+			ConfigPermDef def = new ConfigPermDef(defName, ignorePerm, ignoreAddPerm, ignoreRemovePerm, filterPerm, priority, lazyDist);
 			for ( GroupUse use : GroupUse.values()){		
 				String grpKey = defBase+(use.name().toLowerCase().replaceAll("_", "-"))+".groups";
 				List<String> grps = cfg.getStringList(grpKey, null);

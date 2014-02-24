@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import me.asofold.bpl.rsp.api.IPermissionUser;
 import me.asofold.bpl.rsp.api.IRegionEnter;
 import me.asofold.bpl.rsp.api.IRegionExit;
 import me.asofold.bpl.rsp.config.ConfigPermDef.GroupUse;
@@ -44,11 +45,23 @@ public class PermDef {
 	 */
 	public final String defName;
 	final int hash;
+	
 	/**
 	 * Permission a player must have not to be checked with this def.
 	 * (Will be checked BEFORE filterPermission)
 	 */
-	public String ignorePermName = null; // "rsp.ignore";
+	public String ignorePermName = null;
+	
+	/**
+	 * Permission to ignore adding.
+	 */
+	public String ignoreAddPermName = null;
+	
+	/**
+	 * Permission to ignore removal.
+	 */
+	public String ignoreRemovePermName = null;
+	
 	/**
 	 * Permission the player must have to use this.
 	 */
@@ -104,6 +117,8 @@ public class PermDef {
 	public static PermDef fromConfigPermDef(ConfigPermDef cfgDef){
 		PermDef def = new PermDef(cfgDef.defName);
 		def.ignorePermName = cfgDef.ignorePerm;
+		def.ignoreAddPermName = cfgDef.ignoreAddPerm;
+		def.ignoreRemovePermName = cfgDef.ignoreRemovePerm;
 		def.filterPermission = cfgDef.filterPerm;
 		def.priority = cfgDef.priority;
 		def.lazyDist = cfgDef.lazyDist;
@@ -149,6 +164,40 @@ public class PermDef {
 		if (set == null) set = new HashSet<String>();
 		set.add(entry);
 		return set;
+	}
+	
+	/**
+	 * Convenience method to check both permissions if needed.
+	 * @param user
+	 * @return
+	 */
+	public boolean ignoreAdd(IPermissionUser user) {
+		if (ignorePermName != null && user.has(ignorePermName)) {
+			return true;
+		}
+		else if (ignoreAddPermName != null && user.has(ignoreAddPermName)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	
+	/**
+	 * Convenience method to check both permissions if needed.
+	 * @param user
+	 * @return
+	 */
+	public boolean ignoreRemove(IPermissionUser user) {
+		if (ignorePermName != null && user.has(ignorePermName)) {
+			return true;
+		}
+		else if (ignoreRemovePermName != null && user.has(ignoreRemovePermName)) {
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 	
 }

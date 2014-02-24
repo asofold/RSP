@@ -875,8 +875,9 @@ public class RSPCore implements IRSPCore{
 			}
 			for(PermDef def : defs.defRemExit){
 				if (def == null) continue; // safety
-				if (def.ignorePermName != null){
-					if (user.has(def.ignorePermName)) continue; // TOOD: policy.
+				if (def.ignoreRemove(user)) {
+					// Other policy ?
+					continue;
 				}
 				// Do mind that the filter-permission is not checked here (!).
 				// remove perm groups
