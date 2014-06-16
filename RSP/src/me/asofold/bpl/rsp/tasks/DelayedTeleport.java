@@ -1,6 +1,7 @@
 package me.asofold.bpl.rsp.tasks;
 
-import org.bukkit.Bukkit;
+import me.asofold.bpl.rsp.plshared.Players;
+
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
@@ -21,7 +22,8 @@ public final class DelayedTeleport implements Runnable {
 
 	@Override
 	public void run() {
-		final Player player = Bukkit.getServer().getPlayer(playerName);
+		// TODO: Switch to uuid ?
+		final Player player = Players.getPlayerExact(playerName);
 		if ( player != null ){
 			player.setVelocity(new org.bukkit.util.Vector(0,0,0));
 			player.teleport(loc, TeleportCause.PLUGIN);

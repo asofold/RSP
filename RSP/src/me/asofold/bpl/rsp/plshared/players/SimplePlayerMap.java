@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.bukkit.entity.Player;
 
@@ -20,14 +21,19 @@ public class SimplePlayerMap implements PlayerMap{
 	
 	/**
 	 * Keep track of byName players. (exact name, lower case name).<br>
-	 * TODO: Consider also adding a prefix-tree.
 	 */
 	protected final Map<String, Player> byName = new HashMap<String, Player>(100);
 	
 	/**
-	 * Map all lower-case prefixes of players to a set of exact names.
+	 * Map all lower-case prefixes of players to a set of exact names.<br>
+	 * TODO: Add a more efficient data structure (prefix tree).
 	 */
-	protected final Map<String, Set<String>> byPrefix = new HashMap<String, Set<String>>(1000);
+	protected final Map<String, Set<String>> byNamePrefix = new HashMap<String, Set<String>>(1000);
+	
+	/**
+	 * Map UUID object to player instances.
+	 */
+	protected final Map<UUID, Player> byUUID= new HashMap<UUID, Player>(100);
 	
 	/**
 	 * 
@@ -39,13 +45,14 @@ public class SimplePlayerMap implements PlayerMap{
 		// Add direct mappings.
 		byName.put(name, player);
 		byName.put(lcName, player);
+		byUUID.put(player.getUniqueId(), player); // TODO: Inconsistency checking.
 		// Add prefix mappings.
 		for (int i = 1; i < name.length() + 1; i++){
 			final String prefix = lcName.substring(0, i);
-			Set<String> set = byPrefix.get(prefix);
+			Set<String> set = byNamePrefix.get(prefix);
 			if (set == null){
 				set = new LinkedHashSet<String>();
-				byPrefix.put(prefix, set);
+				byNamePrefix.put(prefix, set);
 			}
 			set.add(name);
 		}
@@ -61,14 +68,15 @@ public class SimplePlayerMap implements PlayerMap{
 		// Remove direct mappings.
 		byName.remove(name);
 		byName.remove(lcName);
+		byUUID.remove(player.getUniqueId()); // TODO: Inconsistency checking.
 		// Remove prefix mappings.
 		for (int i = 1; i < name.length() + 1; i++){
 			final String prefix = lcName.substring(0, i);
-			final Set<String> set = byPrefix.get(prefix);
+			final Set<String> set = byNamePrefix.get(prefix);
 			if (set != null){
 				set.remove(name);
 				if (set.isEmpty()){
-					byPrefix.remove(prefix);
+					byNamePrefix.remove(prefix);
 					// TODO: From this point on one could remove all following prefixes directly.
 				}
 			}
@@ -80,7 +88,8 @@ public class SimplePlayerMap implements PlayerMap{
 	 */
 	public void clear(){
 		byName.clear();
-		byPrefix.clear();
+		byNamePrefix.clear();
+		byUUID.clear();
 	}
 	
 	@Override
@@ -98,7 +107,7 @@ public class SimplePlayerMap implements PlayerMap{
 		final String lcName = name.trim().toLowerCase();
 		final Player player = byName.get(lcName);
 		if (player != null) return player.getName();
-		final Set<String> names =  byPrefix.get(lcName);
+		final Set<String> names =  byNamePrefix.get(lcName);
 		if (names == null || names.isEmpty()) return null;
 		int diff = Integer.MAX_VALUE;
 		final int len = name.length();
@@ -128,8 +137,15 @@ public class SimplePlayerMap implements PlayerMap{
 	@Override
 	public Set<String> matchByPrefix(final String name) {
 		final String lcName = name.trim().toLowerCase();
-		final Set<String> names = byPrefix.get(lcName);
+		final Set<String> names = byNamePrefix.get(lcName);
 		if (names == null) return emptySet;
 		else return Collections.unmodifiableSet(names);
 	}
+
+	@Override
+	public Player getPlayerExact(final UUID id) {
+		return byUUID.get(id);
+	}
+	
+	
 }

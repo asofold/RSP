@@ -1,6 +1,7 @@
 package me.asofold.bpl.rsp.plshared.players;
 
 import java.util.Set;
+import java.util.UUID;
 
 import org.bukkit.entity.Player;
 
@@ -10,6 +11,13 @@ import org.bukkit.entity.Player;
  *
  */
 public interface PlayerMap {
+	
+	/**
+	 * Get a player by a UUID (exact of course).
+	 * @param id
+	 * @return
+	 */
+	public Player getPlayerExact(final UUID id);
 	
 	/**
 	 * Lookup only by the exact name (will match lower case name or exact).

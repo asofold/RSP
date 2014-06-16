@@ -37,8 +37,7 @@ public class OnlinePlayerMap extends SimplePlayerMap{
 	 * @param plugin
 	 */
 	public void initWithOnlinePlayers(){
-		byName.clear();
-		byPrefix.clear();
+		clear();
 		final Player[] players = Bukkit.getOnlinePlayers();
 		for (int i = 0; i < players.length; i ++){
 			addPlayer(players[i]);

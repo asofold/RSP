@@ -1,5 +1,7 @@
 package me.asofold.bpl.rsp.plshared;
 
+import java.util.UUID;
+
 import me.asofold.bpl.rsp.plshared.players.OnlinePlayerMap;
 import me.asofold.bpl.rsp.plshared.players.PlayerMap;
 
@@ -15,4 +17,9 @@ public class Players {
 	public static final Player getPlayerExact(final String name){
 		return online.getPlayerExact(name);
 	}
+	
+	public static Player getPlayerExact(final UUID id){
+		return online.getPlayerExact(id);
+	}
+	
 }
