@@ -2,6 +2,7 @@ package me.asofold.bpl.rsp.api.impl.bpermissions;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import me.asofold.bpl.rsp.api.IPermissionSettings;
 import me.asofold.bpl.rsp.api.IPermissionUser;
@@ -16,6 +17,7 @@ import de.bananaco.bpermissions.api.WorldManager;
 public final class BPermUser implements IPermissionUser {
 	
 	private final User user;
+	private final UUID id;
 	private final String player;
 	private final String world;
 	private final BPerms perms;
@@ -23,12 +25,13 @@ public final class BPermUser implements IPermissionUser {
 	private Set<String> groupCache = null; 
 	private final Player bp;
 
-	public BPermUser(final BPerms perms, final String player, final String world, final IPermissionSettings settings) {
+	public BPermUser(final BPerms perms, final UUID id, final String player, final String world, final IPermissionSettings settings) {
 		// set world
 		if (world == null) this.world = null;
 		else if (settings.getLowerCaseWorlds()) this.world = world.toLowerCase();
 		else this.world = world;
 		// set player
+		this.id = id; // TODO: Check their API (!).
 		if (settings.getLowerCasePlayers()) this.player = player.toLowerCase();
 		else this.player = player;
 		
@@ -103,6 +106,11 @@ public final class BPermUser implements IPermissionUser {
 	@Override
 	public final void discardChanges() {
 		groupCache = null;
+	}
+
+	@Override
+	public UUID getUniqueId() {
+		return id;
 	}
 
 }

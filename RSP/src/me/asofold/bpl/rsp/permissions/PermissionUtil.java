@@ -88,7 +88,7 @@ public class PermissionUtil {
 		}
 		else if (changed){
 			if (!user.applyChanges()){
-				((RSPCore) RSP.getRSPCore()).onGroupChangeFailure(user.getUserName(), user.getWorldName());
+				((RSPCore) RSP.getRSPCore()).onGroupChangeFailure(user.getUniqueId(), user.getUserName(), user.getWorldName());
 			}
 		}
 		else{

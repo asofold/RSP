@@ -2,11 +2,11 @@ package me.asofold.bpl.rsp.api.impl.pex;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import me.asofold.bpl.rsp.api.IPermissionSettings;
 import me.asofold.bpl.rsp.api.IPermissionUser;
 import me.asofold.bpl.rsp.api.IPermissions;
-
 import ru.tehkode.permissions.PermissionUser;
 import ru.tehkode.permissions.bukkit.PermissionsEx;
 
@@ -32,9 +32,9 @@ public final class PexPerms implements IPermissions {
 	}
 
 	@Override
-	public final IPermissionUser getUser(final String player, final String world) {
+	public final IPermissionUser getUser(final UUID id, final String player, final String world) {
 		if (!settings.getSaveAtAll() && !changed.isEmpty()) changed.clear();
-		return new PexPermUser(this, player, world, settings);
+		return new PexPermUser(this, id, player, world, settings);
 	}
 
 	@Override

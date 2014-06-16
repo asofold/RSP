@@ -2,6 +2,7 @@ package me.asofold.bpl.rsp.api.impl.pex;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import me.asofold.bpl.rsp.api.IPermissionSettings;
 import me.asofold.bpl.rsp.api.IPermissionUser;
@@ -16,6 +17,7 @@ import ru.tehkode.permissions.bukkit.PermissionsEx;
 public final class PexPermUser implements IPermissionUser {
 	private final PermissionUser user;
 	private final PexPerms perms; 
+	private final UUID id;
 	private final String player;
 	private final String world;
 	
@@ -25,15 +27,30 @@ public final class PexPermUser implements IPermissionUser {
 	private Set<String> groupCache = null;
 	private final Player bp;
 	
-	public PexPermUser(final PexPerms perms, final String player, final String world, final IPermissionSettings settings) {
+	public PexPermUser(final PexPerms perms, final UUID id, final String player, final String world, final IPermissionSettings settings) {
 		// TODO: use-worlds is ignored, currently
 		// (Other settings are ignored, pex does it.)
-		user = PermissionsEx.getUser(player);
 		this.perms = perms;
+		this.id = id;
 		this.player = player;
 		this.world = world;
 		
 		bp = Players.getPlayerExact(player);
+		if (bp != null) {
+			// Safest way.
+			user = PermissionsEx.getUser(player);
+		} else {
+			PermissionUser temp = null; // Stupid IDE.
+			try {
+				temp = PermissionsEx.getPermissionManager().getUser(id);
+			} catch (Throwable t) {}
+			if (temp == null) {
+				// Legacy or migration (!).
+				// This is more safe than one might assume (name has been correct a moment ago).
+				temp = PermissionsEx.getUser(player);
+			}
+			user = temp;
+		}
 	}
 
 	@Override
@@ -105,5 +122,10 @@ public final class PexPermUser implements IPermissionUser {
 	@Override
 	public final void discardChanges() {
 		groupCache = null;
+	}
+
+	@Override
+	public UUID getUniqueId() {
+		return id;
 	}
 }

@@ -1,5 +1,7 @@
 package me.asofold.bpl.rsp.api.impl.vault;
 
+import java.util.UUID;
+
 import me.asofold.bpl.rsp.api.IPermissionSettings;
 import me.asofold.bpl.rsp.api.IPermissionUser;
 import me.asofold.bpl.rsp.api.IPermissions;
@@ -51,8 +53,8 @@ public final class VaultPerms implements IPermissions {
 	}
 
 	@Override
-	public final IPermissionUser getUser(final String player, final String world) {
-		return new VaultPermsUser(perms, player, world, settings);
+	public final IPermissionUser getUser(final UUID id, final String player, final String world) {
+		return new VaultPermsUser(perms, id, player, world, settings);
 	}
 
 	@Override

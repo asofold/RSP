@@ -1,5 +1,7 @@
 package me.asofold.bpl.rsp.api;
 
+import java.util.UUID;
+
 /**
  * All group changes are to be made with applyChanges and not with addGroup or removeGroup, unless it is impossible, then applyChanges should do nothing.<br>
  * So the order of calls usually should be prepare() - removeGroup(...), addGroup(...) - applyChanges().<br>
@@ -59,6 +61,8 @@ public interface IPermissionUser {
 	
 
 	public String getUserName();
+	
+	public UUID getUniqueId();
 
 	public String getWorldName();
 	

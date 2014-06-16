@@ -51,7 +51,7 @@ public class RSPPlayerListener implements Listener{
 		// (Must have).
 		final long ts = useStats ? System.nanoTime() : 0L; 
 		Player player = event.getPlayer();
-		core.check(player.getName(), player.getLocation(useLoc));
+		core.check(player.getUniqueId(), player.getName(), player.getLocation(useLoc));
 		useLoc.setWorld(null);
 		if ( useStats){
 			RSPCore.stats.addStats(RSPCore.PLAYER_CHANGED_WORLD, System.nanoTime()-ts);
@@ -64,7 +64,7 @@ public class RSPPlayerListener implements Listener{
 		// TODO: How about checking the bounds here?
 		final long ts = useStats ? System.nanoTime() : 0L;
 		final Player player = event.getPlayer();
-		core.checkJoin(player.getName(), player.getLocation(useLoc), false);
+		core.checkJoin(player.getUniqueId(), player.getName(), player.getLocation(useLoc), false);
 		useLoc.setWorld(null);
 		if (useStats){
 			RSPCore.stats.addStats(RSPCore.PLAYER_LOGIN, System.nanoTime()-ts);
@@ -77,7 +77,7 @@ public class RSPPlayerListener implements Listener{
 		// TODO: How about checking the bounds here?
 		final long ts = useStats ? System.nanoTime() : 0L;
 		final Player player = event.getPlayer();
-		core.checkJoin(player.getName(), player.getLocation(useLoc), true);
+		core.checkJoin(player.getUniqueId(), player.getName(), player.getLocation(useLoc), true);
 		useLoc.setWorld(null);
 		if (useStats){
 			RSPCore.stats.addStats(RSPCore.PLAYER_JOIN, System.nanoTime()-ts);
@@ -86,20 +86,23 @@ public class RSPPlayerListener implements Listener{
 
 	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled = true)
 	final void onPlayerKick(final PlayerKickEvent event) {
-		core.park(event.getPlayer().getName());
+		final Player player = event.getPlayer();
+		core.park(player.getUniqueId(), player.getName());
 	}
 	
 	@EventHandler(priority=EventPriority.MONITOR)
 	final void onPlayerQuit(final PlayerQuitEvent event) {
-		core.park(event.getPlayer().getName());
+		final Player player = event.getPlayer();
+		core.park(player.getUniqueId(), player.getName());
 	}
 
 	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled = false)
 	final void onPlayerMove(final PlayerMoveEvent event) {
 		final long ts = useStats ? System.nanoTime() : 0L;
 		final Location ref = event.isCancelled() ? event.getFrom() : event.getTo();
-		core.check(event.getPlayer().getName(), ref);
-		if ( useStats){
+		final Player player = event.getPlayer();
+		core.check(player.getUniqueId(), player.getName(), ref);
+		if (useStats){
 			RSPCore.stats.addStats(RSPCore.PLAYER_MOVE, System.nanoTime()-ts);
 		}
 	}
@@ -135,7 +138,8 @@ public class RSPPlayerListener implements Listener{
 		final Entity entity = event.getEntered();
 		if ( entity instanceof Player){
 			final long ts = useStats ? System.nanoTime() : 0L;
-			core.check(((Player) entity).getName(), event.getVehicle().getLocation(useLoc));
+			final Player player = ((Player) entity);
+			core.check(player.getUniqueId(), player.getName(), event.getVehicle().getLocation(useLoc));
 			useLoc.setWorld(null);
 			if ( useStats){
 				RSPCore.stats.addStats(RSPCore.VEHICLE_ENTER, System.nanoTime()-ts);
@@ -148,7 +152,8 @@ public class RSPPlayerListener implements Listener{
 		final Entity entity = event.getExited();
 		if ( entity instanceof Player){
 			final long ts = useStats ? System.nanoTime() : 0L;
-			core.check(((Player) entity).getName(), event.getVehicle().getLocation(useLoc));
+			final Player player = ((Player) entity);
+			core.check(player.getUniqueId(), player.getName(), event.getVehicle().getLocation(useLoc));
 			useLoc.setWorld(null);
 			if ( useStats){
 				RSPCore.stats.addStats(RSPCore.VEHICLE_EXIT, System.nanoTime()-ts);
@@ -191,7 +196,8 @@ public class RSPPlayerListener implements Listener{
 		final long ts = useStats ? System.nanoTime() : 0L;
 		final Location to = event.getTo();
 		if (to == null) return;
-		core.checkAndCheckDelayed(event.getPlayer().getName(), to);
+		final Player player = event.getPlayer();
+		core.checkAndCheckDelayed(player.getUniqueId(), player.getName(), to);
 		if (useStats){
 			RSPCore.stats.addStats(RSPCore.PLAYER_PORTAL, System.nanoTime()-ts);
 		}
@@ -204,7 +210,8 @@ public class RSPPlayerListener implements Listener{
 		if ( !core.isWithinBounds(loc)){
 			Bukkit.getLogger().warning("[RSP] Player "+event.getPlayer().getName()+" respawns outside of boundaries or world "+loc.getWorld().getName()+"!");
 		}
-		core.checkAndCheckDelayed(event.getPlayer().getName(), loc);
+		final Player player = event.getPlayer();
+		core.checkAndCheckDelayed(player.getUniqueId(), player.getName(), loc);
 		if ( useStats){
 			RSPCore.stats.addStats(RSPCore.PLAYER_RESPAWN, System.nanoTime()-ts);
 		}
@@ -228,7 +235,8 @@ public class RSPPlayerListener implements Listener{
 		final long ts = useStats ? System.nanoTime() : 0L;
 		final Location to = event.getTo();
 		if (to == null) return;
-		core.checkAndCheckDelayed(event.getPlayer().getName(), to);
+		final Player player = event.getPlayer();
+		core.checkAndCheckDelayed(player.getUniqueId(), player.getName(), to);
 		if (useStats) {
 			RSPCore.stats.addStats(RSPCore.PLAYER_TELEPORT, System.nanoTime() - ts);
 		}

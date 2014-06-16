@@ -1,5 +1,7 @@
 package me.asofold.bpl.rsp.api.impl.superperms;
 
+import java.util.UUID;
+
 import me.asofold.bpl.rsp.api.IPermissionUser;
 import me.asofold.bpl.rsp.plshared.Players;
 
@@ -8,10 +10,12 @@ import org.bukkit.entity.Player;
 public final class SuperPermsUser implements IPermissionUser {
 	
 	private Player player;
+	private final UUID id;
 	private final String playerName;
 	private final String worldName;
 
-	public SuperPermsUser(final String playerName, final String world) {
+	public SuperPermsUser(final UUID id, final String playerName, final String world) {
+		this.id = id;
 		this.playerName = playerName;
 		this.worldName = world;
 		setPlayer();
@@ -67,6 +71,11 @@ public final class SuperPermsUser implements IPermissionUser {
 	@Override
 	public final String getWorldName() {
 		return worldName;
+	}
+
+	@Override
+	public UUID getUniqueId() {
+		return id;
 	}
 
 }

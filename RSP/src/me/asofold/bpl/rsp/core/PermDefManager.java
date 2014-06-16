@@ -1,6 +1,6 @@
 package me.asofold.bpl.rsp.core;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -23,18 +23,18 @@ public class PermDefManager {
 	/**
 	 * Permdefs by id.
 	 */
-	final Map<Integer, PermDefData> idDefMap = new HashMap<Integer, PermDefData>();
+	final Map<Integer, PermDefData> idDefMap = new LinkedHashMap<Integer, PermDefData>();
 	
 	/**
 	 * Map Worldname -> rid -> id
 	 */
-	final Map<String, Map<String, Integer>> regionIdMap = new HashMap<String, Map<String,Integer>>();
+	final Map<String, Map<String, Integer>> regionIdMap = new LinkedHashMap<String, Map<String,Integer>>();
 	
 	
 	/**
 	 * 
 	 */
-	final Map<String, PermDefSetup> permDefSetups = new HashMap<String, PermDefSetup>();
+	final Map<String, PermDefSetup> permDefSetups = new LinkedHashMap<String, PermDefSetup>();
 	
 	/**
 	 * Id for generic permdefs: online
@@ -126,7 +126,7 @@ public class PermDefManager {
 		PermDef def = setup.permDef;
 		Map<String, Integer> idMap = regionIdMap.get(worldName);
 		if ( idMap == null){
-			idMap = new HashMap<String, Integer>();
+			idMap = new LinkedHashMap<String, Integer>();
 			regionIdMap.put(worldName, idMap);
 		}
 		Integer id = idMap.get(rid);
@@ -210,7 +210,7 @@ public class PermDefManager {
 		return res;
 	}
 
-	public boolean unlinkPermDef(String defName, String worldName, String rid) {
+	public boolean unlinkPermDef(final String defName, final String worldName, final String rid) {
 		// TODO: split / refactor ?
 		PermDefSetup setup = permDefSetups.get(defName);
 		if ( setup == null ) return false;
@@ -223,18 +223,23 @@ public class PermDefManager {
 		// (TODO: mind code cloning possibly, for the following !)
 //		List<IPermissionUser> changedUsers = new LinkedList<IPermissionUser>();
 		boolean changed = false;
-		List<String> keys = new LinkedList<String>();
-		keys.addAll(core.playerData.keySet());
-		keys.addAll(core.parked.keySet());
-		for (String playerName : keys){
-			PlayerData data = core.getData(playerName);
-			if ( !data.isChecked ) continue;
-			if ( !data.idCache.contains(id) ) continue;
-			if ( removeId ) data.idCache.remove(id);
+		final List<PlayerData> alldata = new LinkedList<PlayerData>();
+		alldata.addAll(core.playerData.values());
+		alldata.addAll(core.parked.values());
+		for (final PlayerData data : alldata){
+			if (!data.isChecked ) {
+				continue;
+			}
+			if (!data.idCache.contains(id)) {
+				continue;
+			}
+			if (removeId) {
+				data.idCache.remove(id);
+			}
 			// adjust perms:
 			// TODO: POLICY ! [currently: remove grpRemExit]
 			// TODO: CONFLICTS / REFERENCE COUNTS !
-			IPermissionUser user = permissions.getUser(playerName, worldName);
+			final IPermissionUser user = permissions.getUser(data.id, data.playerName, worldName);
 			user.prepare();
 			for ( String grp : setup.permDef.grpRemExit){
 				if ( user.inGroup(grp) ){
@@ -244,7 +249,7 @@ public class PermDefManager {
 				}
 			}
 			if (changed){
-				if (!user.applyChanges()) core.onGroupChangeFailure(playerName, worldName);
+				if (!user.applyChanges()) core.onGroupChangeFailure(data.id, data.playerName, worldName);
 			}
 			else user.discardChanges();
 		}

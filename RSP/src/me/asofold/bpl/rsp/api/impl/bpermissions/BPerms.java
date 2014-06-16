@@ -2,11 +2,11 @@ package me.asofold.bpl.rsp.api.impl.bpermissions;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import me.asofold.bpl.rsp.api.IPermissionSettings;
 import me.asofold.bpl.rsp.api.IPermissionUser;
 import me.asofold.bpl.rsp.api.IPermissions;
-
 import de.bananaco.bpermissions.api.World;
 import de.bananaco.bpermissions.api.WorldManager;
 
@@ -33,8 +33,8 @@ public final class BPerms implements IPermissions {
 	}
 
 	@Override
-	public final IPermissionUser getUser(final String player, final String world) {
-		return new BPermUser(this, player, world, settings);
+	public final IPermissionUser getUser(final UUID id, final String player, final String world) {
+		return new BPermUser(this, id, player, world, settings);
 	}
 
 	@Override

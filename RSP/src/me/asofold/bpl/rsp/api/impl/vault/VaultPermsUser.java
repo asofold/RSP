@@ -2,6 +2,7 @@ package me.asofold.bpl.rsp.api.impl.vault;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import me.asofold.bpl.rsp.api.IPermissionSettings;
 import me.asofold.bpl.rsp.api.IPermissionUser;
@@ -13,6 +14,7 @@ import org.bukkit.entity.Player;
 public final class VaultPermsUser implements IPermissionUser {
 	
 	private final Permission perms;
+	private final UUID id;
 	private final String player;
 	private final String world;
 	private final boolean useWorlds;
@@ -20,8 +22,9 @@ public final class VaultPermsUser implements IPermissionUser {
 	private Set<String> groupCache = null;
 	private final Player bp;
 	
-	public VaultPermsUser(final Permission perms, final String player, final String world, final IPermissionSettings settings) {
+	public VaultPermsUser(final Permission perms, final UUID id, final String player, final String world, final IPermissionSettings settings) {
 		this.perms = perms;
+		this.id = id;
 		if (settings.getLowerCasePlayers()) this.player = player.toLowerCase();
 		else this.player = player;
 		// world:
@@ -89,6 +92,11 @@ public final class VaultPermsUser implements IPermissionUser {
 	@Override
 	public void discardChanges() {
 		groupCache = null;
+	}
+
+	@Override
+	public UUID getUniqueId() {
+		return id;
 	}
 
 }

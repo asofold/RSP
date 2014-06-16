@@ -49,7 +49,7 @@ public interface IRSPCore {
 	 * @param defName
 	 * @return
 	 */
-	public boolean hasPermDef( String defName);
+	public boolean hasPermDef(String defName);
 	
 	/**
 	 * Remove PermDef from context (world, region), the permDef will not be deleted.
@@ -66,7 +66,7 @@ public interface IRSPCore {
 	 * though factories returning null or empty sets for pluginHookNames will be checked after non-empty sets.
 	 * @param factory
 	 */
-	public void addPermissionsFactory( IPermissionsFactory factory);
+	public void addPermissionsFactory(IPermissionsFactory factory);
 	
 	/**
 	 * Convenience method to get the names of all players that are in a certain region.<br>

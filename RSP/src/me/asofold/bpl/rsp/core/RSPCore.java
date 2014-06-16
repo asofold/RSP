@@ -5,12 +5,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Level;
 
 import me.asofold.bpl.rsp.RSP;
@@ -68,7 +70,7 @@ public class RSPCore implements IRSPCore{
 	
 	private static final int defaultMaxCheckedOut = 300;
 	
-	private static final Set<String> reservedRids = new HashSet<String>(Arrays.asList(new String[]{
+	private static final Set<String> reservedRids = new LinkedHashSet<String>(Arrays.asList(new String[]{
 			"__global__", "__owner__", "__member__", "__region__"
 	}));
 	
@@ -111,7 +113,7 @@ public class RSPCore implements IRSPCore{
 	/**
 	 * General world-specific settings.
 	 */
-	private final  Map <String, WorldSettings> worlds = new HashMap<String, WorldSettings>();
+	private final  Map <String, WorldSettings> worlds = new LinkedHashMap<String, WorldSettings>();
 	
 	
 	///////////////////////////////
@@ -134,14 +136,14 @@ public class RSPCore implements IRSPCore{
 	protected int taskIdUpdateAll = -1;
 	
 	/**
-	 * Active players data.
+	 * Active players data. Exact name.
 	 */
-	final Map<String, PlayerData> playerData = new HashMap<String, PlayerData>();
+	final Map<String, PlayerData> playerData = new LinkedHashMap<String, PlayerData>();
 	
 	/**
-	 * Parked playerData.
+	 * Parked playerData. Exact name.
 	 */
-	final Map<String, PlayerData> parked = new HashMap<String, PlayerData>();
+	final Map<String, PlayerData> parked = new LinkedHashMap<String, PlayerData>();
 	
 	/**
 	 * Maximum size of checked-out storage.
@@ -151,7 +153,7 @@ public class RSPCore implements IRSPCore{
 	/**
 	 * To remember checked out players and save some time on rejoin.
 	 */
-	final Set<String> checkedOut = new HashSet<String>();
+	final Set<String> checkedOut = new LinkedHashSet<String>();
 	
 	///////////////////////
 	// Cache / Temporary
@@ -282,7 +284,7 @@ public class RSPCore implements IRSPCore{
 		//if (!permissions.isAvailable()) return;
 		for (Player player : Bukkit.getServer().getOnlinePlayers()){
 			try{
-				check(player.getName(), player.getLocation(useLoc));
+				check(player.getUniqueId(), player.getName(), player.getLocation(useLoc));
 				useLoc.setWorld(null);
 			} catch (Throwable t){
 				System.out.println("[RSP] Failed to check player: "+player.getName());
@@ -330,13 +332,19 @@ public class RSPCore implements IRSPCore{
 	 * @param playerName
 	 * @return
 	 */
-	final PlayerData getData(final String playerName){
+	final PlayerData getData(final UUID id, final String playerName){
+		
+		
+		// TODO: Consistency checking.
+		
 		// Data from active players:
 		PlayerData data = playerData.get(playerName);
-		if (data != null) return data;
+		if (data != null) {
+			return data;
+		}
 		data = parked.remove(playerName); // Data from parked players:
 		if (data == null){
-			data = new PlayerData(playerName);	// Newly created player data
+			data = new PlayerData(id, playerName);	// Newly created player data
 			checkedOut.remove(playerName); // if that should be the case.
 		}
 		playerData.put(playerName, data);
@@ -406,9 +414,9 @@ public class RSPCore implements IRSPCore{
 			if (settings.heavyDelayedCheck) {
 				recheck(player, true);
 			} else {
-				final PlayerData data = getData(playerName);
+				final PlayerData data = getData(player.getUniqueId(), playerName);
 				data.forceCacheExpiration();
-				check(playerName, player.getLocation(useLoc));
+				check(data.id, playerName, player.getLocation(useLoc));
 			}
 			useLoc.setWorld(null);
 			if (settings.useStats) {
@@ -417,32 +425,32 @@ public class RSPCore implements IRSPCore{
 		}
 	}
 	
-	public void checkAndCheckDelayed(final String playerName, final Location loc) {
+	public void checkAndCheckDelayed(final UUID playerId, final String playerName, final Location loc) {
 		// TODO: Mechanics with check: check might remove task for normal moving?
 		// TODO: While registered: other events like interact should also trigger check + cancel.
-		check(playerName, loc);
-		getData(playerName).checkTask.registerIfIdle(this);
+		check(playerId, playerName, loc);
+		getData(playerId, playerName).checkTask.registerIfIdle(this);
 	}
 	
 	/**
 	 * POLICY: If wg is not set, assume all perms to be forfeit as with logout(check all regions, but use cache).
 	 * @param player
 	 */
-	public void check(final String playerName, final Location loc) {// Player player, Location loc) {
+	public void check(final UUID playerId, final String playerName, final Location loc) {// Player player, Location loc) {
 //		String playerName = player.getName();
 		// TODO: cleanup for speed !
 		if (loc == null){ // TODO: SUBJECT TO REMOVAL -> RATHER NOT :)
-			checkout(playerName, false);
+			checkout(playerId, playerName, false);
 			logSevere(RSPError.NULL_LOCATION, "check: " + playerName);
 			return;
 		}
 		final World world = loc.getWorld();
 		if (world == null) { // TODO: SUBJECT TO REMOVAL
-			checkout(playerName, false);
+			checkout(playerId, playerName, false);
 			logSevere(RSPError.NULL_WORLD, "check: " + playerName);
 			return;
 		}
-		final PlayerData data = getData(playerName);
+		final PlayerData data = getData(playerId, playerName);
 		final String worldName = world.getName();
 		WorldSettings settings = worlds.get(worldName);
 		if (settings == null) settings = this.settings.defaults;
@@ -457,7 +465,7 @@ public class RSPCore implements IRSPCore{
 		}
 		if (wg == null){ // TODO: SUBJECT TO REMOVAL (?)
 			// TODO: check checked out players :)
-			checkout(playerName, false);
+			checkout(playerId, playerName, false);
 			logSevere(RSPError.NOT_PRESENT_REGIONS, "check");
 			return; 
 		}
@@ -472,7 +480,7 @@ public class RSPCore implements IRSPCore{
 			// TODO: maybe set checkPos to have lazydist applied !
 			if (!data.idCache.isEmpty()){
 				// TODO: stats ?
-				checkout(playerName, false);
+				checkout(playerId, playerName, false);
 			}
 			return;
 		}
@@ -485,7 +493,7 @@ public class RSPCore implements IRSPCore{
 		// Check cache expiration:
 		final boolean checkExpire = data.checkCache(this.settings.lifetimeCache);
 		if (checkExpire){
-			user = permissions.getUser(playerName, worldName);
+			user = permissions.getUser(playerId, playerName, worldName);
 			if (!data.idCache.isEmpty()){
 				user.prepare();
 				prepared = true;
@@ -503,7 +511,7 @@ public class RSPCore implements IRSPCore{
 			// User can't have been changed.
 			return; // (location heuristic)
 		}
-		else user = permissions.getUser(playerName, worldName);
+		else user = permissions.getUser(playerId, playerName, worldName);
 		data.checkPos = new BlockPos(loc);
 		
 		final Set<Integer> active = data.idCache;
@@ -514,7 +522,7 @@ public class RSPCore implements IRSPCore{
 		final ApplicableRegionSet set = wg.getRegionManager(world).getApplicableRegions(loc);
 		int nMatched = 0;
 		final List<Integer> newIds = new LinkedList<Integer>();
-		final Set<Integer> matched = new HashSet<Integer>();
+		final Set<Integer> matched = new LinkedHashSet<Integer>();
 		boolean owner = false;
 		boolean member = false;
 		for (final ProtectedRegion region : set){
@@ -701,21 +709,24 @@ public class RSPCore implements IRSPCore{
 	 * @param playerName
 	 * @param heavy If to check for all permdefs.
 	 */
-	public void checkout(String playerName, boolean heavy){ //Player player) {
+	public void checkout(final UUID id, final String playerName, boolean heavy){ //Player player) {
 		// check all given groups or ALL if not checked.
 		if (checkedOut.size() > maxCheckedOut) releaseCheckedOut();
-		final PlayerData data = getData(playerName);
+		final PlayerData data = getData(id, playerName);
+		
+		// TODO: Split to checkout(data), because later name changes might be happening. 
+		
 		data.forceCacheExpiration();
 		data.checkTask.cancel();
 		data.lastValidLoc.setWorld(null);
 		if (!permissions.isAvailable()) return; // TODO: maybe not
-		Set<Integer> ids = new HashSet<Integer>();
+		Set<Integer> ids = new LinkedHashSet<Integer>();
 		if (!data.isChecked) {
 			if (heavy) ids.addAll(pdMan.idDefMap.keySet());
 		} else{
 			ids.addAll(data.idCache);
 		}
-		if (removePermsById(playerName, ids)){
+		if (removePermsById(id, playerName, ids)){
 			if (this.settings.saveOnCheckOut) forceSaveChanges();
 		}
 		data.clearCache();
@@ -733,9 +744,9 @@ public class RSPCore implements IRSPCore{
 	 * Park PlayerData.
 	 * @param playerName
 	 */
-	public void park(final String playerName){
+	public void park(final UUID id, final String playerName){
 		if (this.settings.noParking){
-			checkout(playerName, false);
+			checkout(id, playerName, false);
 			return;
 		}
 		PlayerData data = playerData.remove(playerName);
@@ -751,42 +762,49 @@ public class RSPCore implements IRSPCore{
 	 */
 	public void checkParked(){
 		long ts = System.currentTimeMillis() - this.settings.durExpireParked;
-		List<String> rem = new LinkedList<String>();
+		List<PlayerData> rem = new LinkedList<PlayerData>();
 		int n = 0;
-		for (String playerName:parked.keySet()){
-			if (parked.get(playerName).tsCache >= ts) continue;
-			rem.add(playerName);
+		for (PlayerData data : parked.values()){
+			if (data.tsCache >= ts) {
+				continue;
+			}
+			rem.add(data);
 			n++;
-			if (n>= this.settings.nExpireParked && n<parked.size()){
+			if (n >= this.settings.nExpireParked && n<parked.size()) {
 				if (Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(triple.plugin, new Runnable() {
 					@Override
 					public void run() {
 						checkParked();
 					}
-				}, this.settings.ticksCheckParked) != -1) break;
+				}, this.settings.ticksCheckParked) != -1) {
+					// Scheduled.
+					break;
+				}
 				else{
 					logSevere(RSPError.FAILED_SCHEDULING_PARKED, null);
 					n = 0;
 				}
 			}	
 		}
-		for (String playerName : rem){
+		for (final PlayerData data : rem){
 			if (this.settings.useStats){
 				long ns = System.nanoTime();
-				checkout(playerName, false); 
+				checkout(data.id, data.playerName, false); 
 				stats.addStats(CHECKOUT_PARK, System.nanoTime()-ns);
 			} 
-			else checkout(playerName, false); 
+			else {
+				checkout(data.id, data.playerName, false); 
+			}
 		}
 	}
 	
-	public void checkJoin(String playerName, Location loc, boolean forceShallow){
+	public void checkJoin(final UUID id, final String playerName, final Location loc, final boolean forceShallow){
 		if (forceShallow || checkedOut.contains(playerName) || parked.containsKey(playerName)){
 			// TODO: maybe remove from transientMan
 			transientMan.updatePlayer(playerName, true); // TODO: maybe something more efficient (flag in player data).
-			check(playerName, loc);
+			check(id, playerName, loc);
 		} else{
-			recheck(playerName, loc, true);
+			recheck(id, playerName, loc, true);
 		}
 	}
 	
@@ -795,14 +813,14 @@ public class RSPCore implements IRSPCore{
 	 * Currently a heavy method.
 	 * @param player
 	 */
-	public void recheck(Player player, boolean heavy){
-		recheck(player.getName(), player.getLocation(useLoc), heavy);
+	public void recheck(final Player player, final boolean heavy){
+		recheck(player.getUniqueId(), player.getName(), player.getLocation(useLoc), heavy);
 		useLoc.setWorld(null);
 	}
 	
-	public void recheck(String playerName, Location loc, boolean heavy){
-		checkout(playerName, heavy);
-		check(playerName, loc);
+	public void recheck(final UUID id, final String playerName, final Location loc, final boolean heavy){
+		checkout(id, playerName, heavy);
+		check(id, playerName, loc);
 	}
 
 
@@ -823,25 +841,25 @@ public class RSPCore implements IRSPCore{
 
 	public void checkoutAllPlayers(boolean heavy) {
 		// if (!permissions.isAvailable()) return;
-		Collection<String> check = new LinkedList<String>();
+		Collection<PlayerData> check = new LinkedList<PlayerData>();
 		if (heavy){
 			for (Player player : Bukkit.getServer().getOnlinePlayers()){
-				check.add(player.getName());
+				check.add(getData(player.getUniqueId(), player.getName()));
 			}
 		} else{
-			check.addAll(playerData.keySet());
+			check.addAll(playerData.values());
 		}
-		check.addAll(parked.keySet());
-		for (String playerName: check){
+		check.addAll(parked.values());
+		for (PlayerData data : check){
 			try{
 				if (this.settings.useStats){
 					long ns = System.nanoTime();
-					checkout(playerName, heavy);
+					checkout(data.id, data.playerName, heavy);
 					stats.addStats(CHECKOUT_ALL, System.nanoTime()-ns);
 				}
-				else checkout(playerName, heavy);
+				else checkout(data.id, data.playerName, heavy);
 			} catch (Throwable t){
-				System.out.println("[RSP] Failed to checkout player: "+playerName);
+				System.out.println("[RSP] Failed to checkout player: " + data.playerName + " / " + data.id.toString());
 			}
 //			if (saveOnCheckOutAll){
 ////				permissions.getUser(playerName).save();
@@ -857,10 +875,10 @@ public class RSPCore implements IRSPCore{
 	 * @param user
 	 * @param rids
 	 */
-	public boolean removePermsById(final String playerName, final Set<Integer> ids){
+	public boolean removePermsById(final UUID playerId, final String playerName, final Set<Integer> ids){
 		boolean changed = false;
 		boolean trChanged = false;
-		final Map<String, IPermissionUser> uMap = new HashMap<String, IPermissionUser>();
+		final Map<String, IPermissionUser> uMap = new LinkedHashMap<String, IPermissionUser>();
 		for (Integer id: ids){
 			final PermDefData defs = pdMan.idDefMap.get(id);
 			if (defs == null) continue;
@@ -869,7 +887,7 @@ public class RSPCore implements IRSPCore{
 				user = uMap.get(defs.worldName);
 			}
 			else{
-				user = permissions.getUser(playerName, defs.worldName);
+				user = permissions.getUser(playerId, playerName, defs.worldName);
 				user.prepare();
 				uMap.put(defs.worldName, user);
 			}
@@ -892,12 +910,14 @@ public class RSPCore implements IRSPCore{
 				}
 			}
 		}
-		if (trChanged) transientMan.updatePlayer(playerName);
+		if (trChanged) {
+			transientMan.updatePlayer(playerName);
+		}
 		if (changed){
 			for (String wn : uMap.keySet()){
 				IPermissionUser user = uMap.get(wn);
-				if (!user.applyChanges()){
-					onGroupChangeFailure(playerName, wn);
+				if (!user.applyChanges()) {
+					onGroupChangeFailure(user.getUniqueId(), playerName, wn);
 				}
 			}
 		}
@@ -926,11 +946,15 @@ public class RSPCore implements IRSPCore{
 	 * @return
 	 */
 	public boolean hasPermission(CommandSender sender, String perm){
-		if (!permissions.isAvailable()) return sender.isOp();
-		else if (sender instanceof Player){
-			Player player = (Player)sender;
-			return permissions.getUser(player.getName(), player.getWorld().getName()).has(perm);
-		} else return sender.isOp();
+		if (sender.hasPermission(perm)) {
+			return true;
+		}
+		if (!(sender instanceof Player)) {
+			// Not sure if to keep this.
+			return sender.isOp();
+		} else {
+			return false;
+		}
 	}
 
 
@@ -977,7 +1001,7 @@ public class RSPCore implements IRSPCore{
 			}
 		}
 		// checkParked task / TODO: maybe not a scheduled task ?
-		if (sched.scheduleSyncRepeatingTask(triple.plugin, new Runnable(){
+		if (sched.scheduleSyncRepeatingTask(triple.plugin, new Runnable() {
 			@Override
 			public void run() {
 				checkParked();
@@ -1117,7 +1141,7 @@ public class RSPCore implements IRSPCore{
 	
 	public void sendPlayerInfo(final CommandSender sender, final Player player) {
 		final WorldSettings settings = getSettings(player.getWorld().getName());
-		final PlayerData data = getData(player.getName());
+		final PlayerData data = getData(player.getUniqueId(), player.getName());
 		final String c0 = sender instanceof Player ? ChatColor.GREEN.toString() : "";
 		final String c1 = sender instanceof Player ? ChatColor.WHITE.toString() : "";
 		final String c2 = sender instanceof Player ? ChatColor.GRAY.toString() : "";
@@ -1235,9 +1259,8 @@ public class RSPCore implements IRSPCore{
         scheduleUpdateAll();
     }
 	
-	public void onGroupChangeFailure(String userName, String worldName) {
+	public void onGroupChangeFailure(UUID id, String userName, String worldName) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
