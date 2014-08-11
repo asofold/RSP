@@ -4,9 +4,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import me.asofold.bpl.rsp.api.IPermissionUser;
-import me.asofold.bpl.rsp.api.IRegionEnter;
-import me.asofold.bpl.rsp.api.IRegionExit;
+import me.asofold.bpl.rsp.api.permissions.IPermissionUser;
+import me.asofold.bpl.rsp.api.regions.IRegionEnter;
+import me.asofold.bpl.rsp.api.regions.IRegionExit;
 import me.asofold.bpl.rsp.config.PermDef;
 import me.asofold.bpl.rsp.permissions.PrioMap;
 import me.asofold.bpl.rsp.utils.BlockPos;

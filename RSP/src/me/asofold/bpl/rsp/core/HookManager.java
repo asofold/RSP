@@ -7,13 +7,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import me.asofold.bpl.rsp.api.IPermissionSettings;
-import me.asofold.bpl.rsp.api.IPermissions;
-import me.asofold.bpl.rsp.api.IPermissionsFactory;
-import me.asofold.bpl.rsp.api.impl.bpermissions.BPermsFactory;
-import me.asofold.bpl.rsp.api.impl.pex.PexPermsFactory;
-import me.asofold.bpl.rsp.api.impl.superperms.SuperPerms;
-import me.asofold.bpl.rsp.api.impl.vault.VaultPermsFactory;
+import me.asofold.bpl.rsp.api.permissions.IPermissionSettings;
+import me.asofold.bpl.rsp.api.permissions.IPermissions;
+import me.asofold.bpl.rsp.api.permissions.IPermissionsFactory;
+import me.asofold.bpl.rsp.api.permissions.impl.bpermissions.BPermsFactory;
+import me.asofold.bpl.rsp.api.permissions.impl.pex.PexPermsFactory;
+import me.asofold.bpl.rsp.api.permissions.impl.superperms.SuperPerms;
+import me.asofold.bpl.rsp.api.permissions.impl.vault.VaultPermsFactory;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;

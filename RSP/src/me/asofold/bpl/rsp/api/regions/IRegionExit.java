@@ -1,4 +1,4 @@
-package me.asofold.bpl.rsp.api;
+package me.asofold.bpl.rsp.api.regions;
 
 /**
  * MAybe add a reason for exit, move etc.

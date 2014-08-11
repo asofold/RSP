@@ -1,11 +1,11 @@
-package me.asofold.bpl.rsp.api.impl.bpermissions;
+package me.asofold.bpl.rsp.api.permissions.impl.bpermissions;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import me.asofold.bpl.rsp.api.IPermissionSettings;
-import me.asofold.bpl.rsp.api.IPermissionUser;
+import me.asofold.bpl.rsp.api.permissions.IPermissionSettings;
+import me.asofold.bpl.rsp.api.permissions.IPermissionUser;
 import me.asofold.bpl.rsp.plshared.Players;
 
 import org.bukkit.entity.Player;

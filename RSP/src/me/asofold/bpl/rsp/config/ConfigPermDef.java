@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import me.asofold.bpl.rsp.api.IRegionEnter;
-import me.asofold.bpl.rsp.api.IRegionExit;
+import me.asofold.bpl.rsp.api.regions.IRegionEnter;
+import me.asofold.bpl.rsp.api.regions.IRegionExit;
 import me.asofold.bpl.rsp.config.compatlayer.CompatConfig;
 
 

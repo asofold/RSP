@@ -2,6 +2,8 @@ package me.asofold.bpl.rsp.api;
 
 import java.util.Collection;
 
+import me.asofold.bpl.rsp.api.permissions.IPermissionsFactory;
+import me.asofold.bpl.rsp.api.regions.IRegionResultHook;
 import me.asofold.bpl.rsp.config.ConfigPermDef;
 
 import org.bukkit.Location;
@@ -11,7 +13,7 @@ import org.bukkit.Location;
  * Public interface for accessing public methods.
  * TODO: a) Make minimal ! b) adjust comments to new config (simple methods=enter+add, leave+remove)
  * TODO: cleanup methods to most simple design.
- * TODO: add additional methods with lifetime enum (like type: till reload, forever(saved´) )
+ * TODO: add additional methods with lifetime enum (like type: till reload, forever(savedï¿½) )
  * @author mc_dev
  *
  */
@@ -91,12 +93,12 @@ public interface IRSPCore {
 	 * These get removed on disable.
 	 * @param setCheck
 	 */
-	public void addSetCheck(ISetCheck setCheck);
+	public void addRegionResultHook(IRegionResultHook regionResultHook);
 	
 	/**
 	 * Remove a certain hook for ApplicableRegionSet on check.
 	 * @param setCheck
 	 */
-	public void removeSetCheck(ISetCheck setCheck);
+	public void removeRegionResultHook(IRegionResultHook regionResultHook);
 
 }

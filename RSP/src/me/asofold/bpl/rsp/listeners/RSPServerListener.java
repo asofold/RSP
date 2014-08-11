@@ -20,10 +20,10 @@ public class RSPServerListener implements Listener {
 	public void onPluginDisable(PluginDisableEvent event) {
 		String pluginName = event.getPlugin().getDescription().getName();
 		if ( pluginName.equals("WorldGuard")){
-			// TODO: move this to hooks as well ?
+			// TODO: Transform to generic handling.
 			core.checkoutAllPlayers();
 			core.setWG();
-		} 
+		}
 		
 		// extra if for perms:
 		if (core.hasPluginHook(pluginName)){
@@ -35,7 +35,10 @@ public class RSPServerListener implements Listener {
 	@EventHandler(priority=EventPriority.MONITOR)
 	public void onPluginEnable(PluginEnableEvent event) {
 		String pluginName = event.getPlugin().getDescription().getName();
-		if ( pluginName.equals("WorldGuard")) core.setWG(); // TODO: move this to hooks as well ?
+		if ( pluginName.equals("WorldGuard")) {
+			// TODO: Transform to generic handling.
+			core.setWG();
+		}
 		// extra if for perms:
 		if (core.hasPluginHook(pluginName)){
 			core.onPluginEnabled(pluginName);

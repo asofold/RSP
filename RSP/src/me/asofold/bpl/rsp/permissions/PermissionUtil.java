@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import me.asofold.bpl.rsp.RSP;
-import me.asofold.bpl.rsp.api.IPermissionUser;
+import me.asofold.bpl.rsp.api.permissions.IPermissionUser;
 import me.asofold.bpl.rsp.config.compatlayer.CompatConfig;
 import me.asofold.bpl.rsp.core.RSPCore;
 import me.asofold.bpl.rsp.utils.Utils;

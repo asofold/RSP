@@ -5,9 +5,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import me.asofold.bpl.rsp.api.IPermissionUser;
-import me.asofold.bpl.rsp.api.IPermissions;
-import me.asofold.bpl.rsp.api.impl.superperms.SuperPerms;
+import me.asofold.bpl.rsp.api.permissions.IPermissionUser;
+import me.asofold.bpl.rsp.api.permissions.IPermissions;
+import me.asofold.bpl.rsp.api.permissions.impl.superperms.SuperPerms;
 import me.asofold.bpl.rsp.config.ConfigPermDef;
 import me.asofold.bpl.rsp.config.PermDef;
 import me.asofold.bpl.rsp.config.PermDefType;

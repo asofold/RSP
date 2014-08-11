@@ -1,12 +1,12 @@
-package me.asofold.bpl.rsp.api.impl.pex;
+package me.asofold.bpl.rsp.api.permissions.impl.pex;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import me.asofold.bpl.rsp.api.IPermissionSettings;
-import me.asofold.bpl.rsp.api.IPermissionUser;
-import me.asofold.bpl.rsp.api.IPermissions;
+import me.asofold.bpl.rsp.api.permissions.IPermissionSettings;
+import me.asofold.bpl.rsp.api.permissions.IPermissionUser;
+import me.asofold.bpl.rsp.api.permissions.IPermissions;
 import ru.tehkode.permissions.PermissionUser;
 import ru.tehkode.permissions.bukkit.PermissionsEx;
 

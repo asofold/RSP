@@ -1,11 +1,11 @@
-package me.asofold.bpl.rsp.api.impl.pex;
+package me.asofold.bpl.rsp.api.permissions.impl.pex;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import me.asofold.bpl.rsp.api.IPermissionSettings;
-import me.asofold.bpl.rsp.api.IPermissions;
-import me.asofold.bpl.rsp.api.IPermissionsFactory;
+import me.asofold.bpl.rsp.api.permissions.IPermissionSettings;
+import me.asofold.bpl.rsp.api.permissions.IPermissions;
+import me.asofold.bpl.rsp.api.permissions.IPermissionsFactory;
 
 
 public class PexPermsFactory implements IPermissionsFactory {

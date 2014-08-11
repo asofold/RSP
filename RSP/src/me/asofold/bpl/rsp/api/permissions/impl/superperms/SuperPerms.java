@@ -1,9 +1,9 @@
-package me.asofold.bpl.rsp.api.impl.superperms;
+package me.asofold.bpl.rsp.api.permissions.impl.superperms;
 
 import java.util.UUID;
 
-import me.asofold.bpl.rsp.api.IPermissionUser;
-import me.asofold.bpl.rsp.api.IPermissions;
+import me.asofold.bpl.rsp.api.permissions.IPermissionUser;
+import me.asofold.bpl.rsp.api.permissions.IPermissions;
 
 public final class SuperPerms implements IPermissions {
 

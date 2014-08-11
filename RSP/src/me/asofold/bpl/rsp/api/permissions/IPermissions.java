@@ -1,4 +1,4 @@
-package me.asofold.bpl.rsp.api;
+package me.asofold.bpl.rsp.api.permissions;
 
 import java.util.UUID;
 

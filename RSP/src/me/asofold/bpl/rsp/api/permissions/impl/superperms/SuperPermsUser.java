@@ -1,8 +1,8 @@
-package me.asofold.bpl.rsp.api.impl.superperms;
+package me.asofold.bpl.rsp.api.permissions.impl.superperms;
 
 import java.util.UUID;
 
-import me.asofold.bpl.rsp.api.IPermissionUser;
+import me.asofold.bpl.rsp.api.permissions.IPermissionUser;
 import me.asofold.bpl.rsp.plshared.Players;
 
 import org.bukkit.entity.Player;

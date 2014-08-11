@@ -1,10 +1,10 @@
-package me.asofold.bpl.rsp.api.impl.superperms;
+package me.asofold.bpl.rsp.api.permissions.impl.superperms;
 
 import java.util.Set;
 
-import me.asofold.bpl.rsp.api.IPermissionSettings;
-import me.asofold.bpl.rsp.api.IPermissions;
-import me.asofold.bpl.rsp.api.IPermissionsFactory;
+import me.asofold.bpl.rsp.api.permissions.IPermissionSettings;
+import me.asofold.bpl.rsp.api.permissions.IPermissions;
+import me.asofold.bpl.rsp.api.permissions.IPermissionsFactory;
 
 public class SuperPermsFactory implements IPermissionsFactory {
 
