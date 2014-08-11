@@ -25,7 +25,7 @@ import org.bukkit.plugin.PluginManager;
  * @author mc_dev
  *
  */
-public class TransientMan {
+public class TransientMan { // TODO: Better name.
     
     /**
      * Map permissions to its child nodes.

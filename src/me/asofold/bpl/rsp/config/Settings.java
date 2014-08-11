@@ -45,6 +45,9 @@ public class Settings {
 	public boolean useWorlds = true;
 	public boolean lowerCasePlayers = true;
 	public boolean lowerCaseWorlds = false;
+	public String  autoPermPrefix = "rsp.autoadd.";
+	public boolean autoPermPlayerName = false;
+	public boolean autoPermPlayerUUID = false;
 	
 	// stats:
 	public boolean logStats = false;
@@ -121,6 +124,9 @@ public class Settings {
 		cfg.set("permissions.use-worlds", ref.useWorlds);
 		cfg.set("permissions.lower-case.players", ref.lowerCasePlayers);
 		cfg.set("permissions.lower-case.worlds", ref.lowerCaseWorlds);
+		cfg.set("permissions.auto-add.prefix", ref.autoPermPrefix);
+		cfg.set("permissions.auto-add.player-name", ref.autoPermPlayerName);
+		cfg.set("permissions.auto-add.player-uuid", ref.autoPermPlayerUUID);
 		cfg.set("create-portals", ref.createPortals);
 		cfg.set("errors.log.min-delay", ref.minDelayLogFrequent);
 		cfg.set("load-plugins", new LinkedList<String>());
@@ -164,6 +170,9 @@ public class Settings {
 		settings.useWorlds = cfg.getBoolean("permissions.use-worlds", settings.useWorlds);
 		settings.lowerCaseWorlds = cfg.getBoolean("permissions.lower-case.worlds", settings.lowerCaseWorlds);
 		settings.lowerCasePlayers = cfg.getBoolean("permissions.lower-case.players", settings.lowerCasePlayers);
+		settings.autoPermPrefix = cfg.getString("permissions.auto-add.prefix", settings.autoPermPrefix);
+		settings.autoPermPlayerName = cfg.getBoolean("permissions.auto-add.player-name", settings.autoPermPlayerName);
+		settings.autoPermPlayerUUID = cfg.getBoolean("permissions.auto-add.player-uuid", settings.autoPermPlayerUUID);
 		List<String> wKeys = cfg.getStringKeys("worlds");
 		if ( wKeys != null){
 			for ( String world : wKeys){
