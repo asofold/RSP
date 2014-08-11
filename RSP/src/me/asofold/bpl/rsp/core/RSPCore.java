@@ -795,6 +795,15 @@ public class RSPCore implements IRSPCore{
 		}
 	}
 	
+	public void onPlayerJoin(final Player player) {
+		checkJoin(player.getUniqueId(), player.getName(), player.getLocation(useLoc), true);
+		useLoc.setWorld(null);
+	}
+	
+	public void onPlayerLeave(final Player player) {
+		park(player.getUniqueId(), player.getName());
+	}
+	
 	public void checkJoin(final UUID id, final String playerName, final Location loc, final boolean forceShallow) {
 		if (forceShallow || checkedOut.contains(playerName) || parked.containsKey(playerName)) {
 			// TODO: maybe remove from transientMan

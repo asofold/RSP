@@ -76,9 +76,7 @@ public class RSPPlayerListener implements Listener{
 		// TODO: maybe switch to another way (check if needs deep re-check).
 		// TODO: How about checking the bounds here?
 		final long ts = useStats ? System.nanoTime() : 0L;
-		final Player player = event.getPlayer();
-		core.checkJoin(player.getUniqueId(), player.getName(), player.getLocation(useLoc), true);
-		useLoc.setWorld(null);
+		core.onPlayerJoin(event.getPlayer());
 		if (useStats){
 			RSPCore.stats.addStats(RSPCore.PLAYER_JOIN, System.nanoTime()-ts);
 		}
@@ -86,14 +84,12 @@ public class RSPPlayerListener implements Listener{
 
 	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled = true)
 	final void onPlayerKick(final PlayerKickEvent event) {
-		final Player player = event.getPlayer();
-		core.park(player.getUniqueId(), player.getName());
+		core.onPlayerLeave(event.getPlayer());
 	}
 	
 	@EventHandler(priority=EventPriority.MONITOR)
 	final void onPlayerQuit(final PlayerQuitEvent event) {
-		final Player player = event.getPlayer();
-		core.park(player.getUniqueId(), player.getName());
+		core.onPlayerLeave(event.getPlayer());
 	}
 
 	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled = false)
