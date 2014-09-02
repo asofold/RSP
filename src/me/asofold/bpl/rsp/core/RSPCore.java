@@ -138,6 +138,16 @@ public class RSPCore implements IRSPCore{
 	protected int taskIdUpdateAll = -1;
 	
 	/**
+	 * OfflinePlayerData by lower-case (!) player name. Data is kept only until the UUID is known.
+	 */
+	final Map<String, OfflinePlayerData> offlinePlayerDataByName = new HashMap<String, OfflinePlayerData>();
+	
+	/**
+	 * OfflinePlayerData by UUID.
+	 */
+	final Map<UUID, OfflinePlayerData> offlinePlayerDataById = new HashMap<UUID, OfflinePlayerData>();
+	
+	/**
 	 * Active players data. Exact name.
 	 */
 	final Map<String, PlayerData> playerData = new LinkedHashMap<String, PlayerData>();
@@ -199,7 +209,7 @@ public class RSPCore implements IRSPCore{
 			res &= uncheckedReloadPlayerSettings();
 			setPermissions();
 			transientMan.updateChildrenPermissions();
-			recheckAllPlayers();
+			checkAllPlayers(); // TODO: Consider reCheck ?
 			scheduleTasks();
 		} catch (Throwable t) {
 			Bukkit.getLogger().severe("[RSP] Failed to load configuration: " + t.getMessage());
@@ -212,8 +222,32 @@ public class RSPCore implements IRSPCore{
 	}
 	
 	public boolean uncheckedReloadPlayerSettings() {
-		// TODO Auto-generated method stub
-		return false;
+		// Clear present data.
+		offlinePlayerDataById.clear();
+		offlinePlayerDataByName.clear();
+		// Load data.
+		final File file = new File(triple.plugin.getDataFolder(), "players.yml");
+		final CompatConfig cfg = CompatConfigFactory.getConfig(file);
+		if (!file.exists()) {
+			// Create an empty file.
+			cfg.save();
+			return true;
+		}
+		cfg.load();
+		for (final String key : cfg.getStringKeys()) {
+			OfflinePlayerData opd = OfflinePlayerData.fromConfig(cfg, "");
+			if (opd != null) {
+				if (opd.uuid != null) {
+					offlinePlayerDataById.put(opd.uuid, opd);
+				} else if (opd.playerName != null) {
+					offlinePlayerDataByName.put(opd.playerName, opd);
+				}
+				// (No else.)
+			} else {
+				triple.plugin.getLogger().warning("Bad or no entry in players.yml for key: " + key);
+			}
+		}
+		return true;
 	}
 
 	boolean uncheckedReloadSettings() {
@@ -288,18 +322,18 @@ public class RSPCore implements IRSPCore{
 		return true;
 	}
 	
-//	public void checkAllPlayers() {
-//		//if (!permissions.isAvailable()) return;
-//		for (Player player : Bukkit.getServer().getOnlinePlayers()) {
-//			try{
-//				check(player.getUniqueId(), player.getName(), player.getLocation(useLoc));
-//				useLoc.setWorld(null);
-//			} catch (Throwable t) {
-//				System.out.println("[RSP] Failed to check player: "+player.getName());
-//			}
-//		}
-//		
-//	}
+	public void checkAllPlayers() {
+		//if (!permissions.isAvailable()) return;
+		for (Player player : Bukkit.getServer().getOnlinePlayers()) {
+			try{
+				check(player.getUniqueId(), player.getName(), player.getLocation(useLoc));
+				useLoc.setWorld(null);
+			} catch (Throwable t) {
+				System.out.println("[RSP] Failed to check player: "+player.getName());
+			}
+		}
+		
+	}
 
 	public void onScheduledSave() {
 		forceSaveChanges();
@@ -357,11 +391,32 @@ public class RSPCore implements IRSPCore{
 			data = new PlayerData(id, playerName);	// Newly created player data
 			checkedOut.remove(playerName); // if that should be the case.
 		}
-		// TODO: Auto-add permdefs.
 		playerData.put(playerName, data);
+		updateByOfflineData(data);
 		return data;
 	}
 	
+	private void updateByOfflineData(final PlayerData data) {
+		OfflinePlayerData opd = offlinePlayerDataById.get(data.id);
+		if (opd == null) {
+			opd = offlinePlayerDataByName.remove(data.playerName.toLowerCase());
+			if (opd != null) {
+				opd.uuid = data.id;
+				offlinePlayerDataById.put(data.id, opd);
+				saveOfflinPlayerData(); // TODO: async save / set dirty.
+			}
+		}
+		int[] autoAddIds = null;
+		if (opd != null) {
+			// Add groups.
+		}
+		data.autoAddIds = autoAddIds;
+	}
+	
+	private void saveOfflinPlayerData() {
+		// TODO Auto-generated method stub
+	}
+
 	/**
 	 * 
 	 * @param error

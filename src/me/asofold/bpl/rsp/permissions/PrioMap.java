@@ -30,7 +30,7 @@ public class PrioMap<K> extends LinkedHashMap<K, PrioEntry>{
 		if (oldValue == null) super.put(key,  new PrioEntry(prioAdd, prioRem));
 		else{
 			oldValue.prioAdd = Math.max(oldValue.prioAdd, prioAdd);
-			oldValue.prioRem= Math.max(oldValue.prioRem, prioRem);
+			oldValue.prioRem = Math.max(oldValue.prioRem, prioRem);
 		}
 	}
 	
