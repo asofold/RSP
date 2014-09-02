@@ -24,77 +24,79 @@ public class PermissionUtil {
 	 * @return  If the user was changed.
 	 */
 	public static final boolean changeGroups(final String playerName, final TransientMan trMan, final IPermissionUser user, 
-			final PrioMap<String> groups, final boolean clear, final boolean prepare){
+			final PrioMap<String> groups, final boolean clear, final boolean prepare) {
 		// final Set<String> add, final Set<String> remove
 		boolean changed = false;
 		boolean trChanged = false;
-		if (prepare && !user.prepare()){
+		if (prepare && !user.prepare()) {
 			// TODO: log ?
 		}
 		
-		for (final Entry<String, PrioEntry> entry : groups.entrySet()){
+		for (final Entry<String, PrioEntry> entry : groups.entrySet()) {
 			final PrioEntry prios = entry.getValue();
-			if (prios.isEmpty()){
+			if (prios.isEmpty()) {
 				// Technically this might be impossible.
 				// TODO: policy
 				continue; 
 			}
 			final boolean isAdd = prios.isAdd();
 			final String grp = entry.getKey();
-			if (trMan.isTransient(grp)){
-				if (isAdd){
+			if (trMan.isTransient(grp)) {
+				if (isAdd) {
 					if (trMan.addGroupToPlayer(playerName, grp, prios.prioAdd, false)) trChanged = true;
 				}
 				else if (trMan.removeGroupFromPlayer(playerName, grp, false)) trChanged = true;
 			}
-			else{
-				if (isAdd){
-					if (!user.inGroup(grp)){
+			else {
+				if (isAdd) {
+					if (!user.inGroup(grp)) {
 						user.addGroup(grp);
 						changed = true;
 					}
 				}
-				else if (user.inGroup(grp)){
+				else if (user.inGroup(grp)) {
 					user.removeGroup(grp);
 					changed = true;
 				}
 			}
 		}
 		
-//		for ( final String grp : remove){
+//		for ( final String grp : remove) {
 //			if (add.contains(grp)) continue;
-//			if (trMan.isTransient(grp)){
+//			if (trMan.isTransient(grp)) {
 //				if (trMan.removeGroupFromPlayer(playerName, grp, false)) trChanged = true;
 //			}
-//			else if (user.inGroup(grp)){
+//			else if (user.inGroup(grp)) {
 //				user.removeGroup(grp);
 //						// ((RSPCore) RSP.getRSPCore()).onRemoveFailure(user.getUserName(), user.getWorldName(), grp);
 //				changed = true;
 //			}
 //		}
-//		for (final String grp : add){
-//			if (trMan.isTransient(grp)){
+//		for (final String grp : add) {
+//			if (trMan.isTransient(grp)) {
 //				if (trMan.addGroupToPlayer(playerName, grp, false)) trChanged = true;
 //			}
 //			else 
-//			if (!user.inGroup(grp)){
+//			if (!user.inGroup(grp)) {
 //				user.addGroup(grp);
 //				changed = true;
 //			}
 //		}
-		if (trChanged) trMan.updatePlayer(playerName);
-		if (!prepare){
+		if (trChanged) {
+			trMan.updatePlayer(playerName);
+		}
+		if (!prepare) {
 			// No calls to user.
 		}
-		else if (changed){
-			if (!user.applyChanges()){
+		else if (changed) {
+			if (!user.applyChanges()) {
 				((RSPCore) RSP.getRSPCore()).onGroupChangeFailure(user.getUniqueId(), user.getUserName(), user.getWorldName());
 			}
 		}
-		else{
+		else {
 			user.discardChanges();
 		}
-		if (clear){
+		if (clear) {
 //			add.clear();
 //			remove.clear();
 			groups.clear();
@@ -108,18 +110,18 @@ public class PermissionUtil {
 	 * @param path
 	 * @param map
 	 */
-	public static void readPermissions(CompatConfig cfg, String path, Map<String, Boolean> map){
+	public static void readPermissions(CompatConfig cfg, String path, Map<String, Boolean> map) {
 		List<String> keys = cfg.getStringList(path, null);
 		if (keys == null) return;
-		for (String key : keys){
+		for (String key : keys) {
 			key = key.trim();
 			boolean state = true;
-			if (key.startsWith("-")){
+			if (key.startsWith("-")) {
 				state = false;
 				key = key.substring(1);
 			}
 			if (key.isEmpty()) continue;
-			if (isValidPermissionName(key)){
+			if (isValidPermissionName(key)) {
 				Utils.warn("[RSP] Ignore permission with bad name: " + key);
 				continue;
 			}

@@ -206,7 +206,7 @@ public class RSPCore implements IRSPCore{
 		// do reload
 		try{
 			res = uncheckedReloadSettings();
-			res &= uncheckedReloadPlayerSettings();
+			res &= uncheckedReloadOfflinePlayerData();
 			setPermissions();
 			transientMan.updateChildrenPermissions();
 			recheckAllPlayers(); // TODO: Consider reCheck ?
@@ -221,7 +221,7 @@ public class RSPCore implements IRSPCore{
 		return res;
 	}
 	
-	public boolean uncheckedReloadPlayerSettings() {
+	public boolean uncheckedReloadOfflinePlayerData() {
 		// Clear present data.
 		offlinePlayerDataById.clear();
 		offlinePlayerDataByName.clear();
@@ -235,7 +235,7 @@ public class RSPCore implements IRSPCore{
 		}
 		cfg.load();
 		for (final String key : cfg.getStringKeys()) {
-			OfflinePlayerData opd = OfflinePlayerData.fromConfig(cfg, "");
+			OfflinePlayerData opd = OfflinePlayerData.fromConfig(cfg, "", key);
 			if (opd != null) {
 				if (opd.uuid != null) {
 					offlinePlayerDataById.put(opd.uuid, opd);
@@ -248,6 +248,18 @@ public class RSPCore implements IRSPCore{
 			}
 		}
 		return true;
+	}
+	
+	private boolean saveOfflinePlayerData() {
+		final File file = new File(triple.plugin.getDataFolder(), "players.yml");
+		final CompatConfig cfg = CompatConfigFactory.getConfig(file);
+		final ArrayList<OfflinePlayerData> allOflline = new ArrayList<OfflinePlayerData>(offlinePlayerDataById.size() + offlinePlayerDataByName.size());
+		allOflline.addAll(offlinePlayerDataByName.values());
+		allOflline.addAll(offlinePlayerDataById.values());
+		for (int i = 0; i < allOflline.size(); i++) {
+			allOflline.get(i).toConfig(cfg, "");
+		}
+		return cfg.save();
 	}
 
 	boolean uncheckedReloadSettings() {
@@ -377,8 +389,6 @@ public class RSPCore implements IRSPCore{
 	 * @return
 	 */
 	final PlayerData getData(final UUID id, final String playerName) {
-		
-		
 		// TODO: Consistency checking.
 		
 		// Data from active players:
@@ -397,22 +407,34 @@ public class RSPCore implements IRSPCore{
 	}
 	
 	private void updateByOfflineData(final PlayerData data) {
+		boolean dirty = false;
 		OfflinePlayerData opd = offlinePlayerDataById.get(data.id);
 		if (opd == null) {
 			opd = offlinePlayerDataByName.remove(data.playerName.toLowerCase());
 			if (opd != null) {
 				opd.uuid = data.id;
 				offlinePlayerDataById.put(data.id, opd);
-				saveOfflinPlayerData(); // TODO: async save / set dirty.
+				dirty = true;
+			}
+		} else {
+			if (!data.playerName.equals(opd.playerName)) {
+				opd.playerName = data.playerName;
+				dirty = true;
+			}
+			if (offlinePlayerDataByName.remove(data.playerName.toLowerCase()) != null) {
+				dirty = true;
+			}
+		} 
+		if (opd != null) {
+			// Update groups.
+			data.groups.update(opd.groups);
+			if (dirty) {
+				saveOfflinePlayerData(); // TODO: async save / set dirty.
+			}
+			if (!data.groups.isEmpty()) {
+				PermissionUtil.changeGroups(data.playerName, transientMan, null, data.groups, false, false);
 			}
 		}
-		if (opd != null) {
-			// Add groups.
-		}
-	}
-	
-	private void saveOfflinPlayerData() {
-		// TODO Auto-generated method stub
 	}
 
 	/**
@@ -569,7 +591,9 @@ public class RSPCore implements IRSPCore{
 			// User can't have been changed.
 			return; // (location heuristic)
 		}
-		else user = permissions.getUser(playerId, playerName, worldName);
+		else {
+			user = permissions.getUser(playerId, playerName, worldName);
+		}
 		data.checkPos = new BlockPos(loc);
 		
 		final Set<Integer> active = data.idCache;
@@ -673,7 +697,9 @@ public class RSPCore implements IRSPCore{
 				}
 				for (final Integer id : rem) {
 					final PermDefData defs = pdMan.idDefMap.get(id);
-					if (defs == null) continue; // TODO: internal error
+					if (defs == null) {
+						continue; // TODO: internal error
+					}
 					if (data.checkExit(user, defs, id)) {
 						groupsChanged = true;
 					}
@@ -720,6 +746,10 @@ public class RSPCore implements IRSPCore{
 		data.minLazyDist = lazyDist;
 		data.isChecked = true;
 		if (groupsChanged) {
+			final OfflinePlayerData opd = offlinePlayerDataById.get(playerId);
+			if (opd != null) {
+				data.groups.update(opd.groups);
+			}
 			if (PermissionUtil.changeGroups(playerName, transientMan, user, data.groups, true, false)) {
 				userChanged = true;
 			}
@@ -781,12 +811,16 @@ public class RSPCore implements IRSPCore{
 		if (!permissions.isAvailable()) return; // TODO: maybe not
 		Set<Integer> ids = new LinkedHashSet<Integer>();
 		if (!data.isChecked) {
-			if (heavy) ids.addAll(pdMan.idDefMap.keySet());
+			if (heavy) {
+				ids.addAll(pdMan.idDefMap.keySet());
+			}
 		} else {
 			ids.addAll(data.idCache);
 		}
 		if (removePermsById(id, playerName, ids)) {
-			if (this.settings.saveOnCheckOut) forceSaveChanges();
+			if (this.settings.saveOnCheckOut) {
+				forceSaveChanges();
+			}
 		}
 		data.clearCache();
 		data.groups.clear(); // TODO: Check effects.

@@ -41,5 +41,16 @@ public class PrioMap<K> extends LinkedHashMap<K, PrioEntry>{
 	public void updateRem(final K key, final int prioRem){
 		update(key, Integer.MIN_VALUE, prioRem);
 	}
+	
+	/**
+	 * Update add and remove by given map.
+	 * @param otherMap
+	 */
+	public void update(PrioMap<K> otherMap) {
+		for (final java.util.Map.Entry<K, PrioEntry> entry : otherMap.entrySet()) {
+			final PrioEntry pe = entry.getValue();
+			update(entry.getKey(), pe.prioAdd, pe.prioRem);
+		}
+	}
 
 }
