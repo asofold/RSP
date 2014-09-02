@@ -209,7 +209,7 @@ public class RSPCore implements IRSPCore{
 			res &= uncheckedReloadPlayerSettings();
 			setPermissions();
 			transientMan.updateChildrenPermissions();
-			checkAllPlayers(); // TODO: Consider reCheck ?
+			recheckAllPlayers(); // TODO: Consider reCheck ?
 			scheduleTasks();
 		} catch (Throwable t) {
 			Bukkit.getLogger().severe("[RSP] Failed to load configuration: " + t.getMessage());
@@ -322,18 +322,18 @@ public class RSPCore implements IRSPCore{
 		return true;
 	}
 	
-	public void checkAllPlayers() {
-		//if (!permissions.isAvailable()) return;
-		for (Player player : Bukkit.getServer().getOnlinePlayers()) {
-			try{
-				check(player.getUniqueId(), player.getName(), player.getLocation(useLoc));
-				useLoc.setWorld(null);
-			} catch (Throwable t) {
-				System.out.println("[RSP] Failed to check player: "+player.getName());
-			}
-		}
-		
-	}
+//	public void checkAllPlayers() {
+//		//if (!permissions.isAvailable()) return;
+//		for (Player player : Bukkit.getServer().getOnlinePlayers()) {
+//			try{
+//				check(player.getUniqueId(), player.getName(), player.getLocation(useLoc));
+//				useLoc.setWorld(null);
+//			} catch (Throwable t) {
+//				System.out.println("[RSP] Failed to check player: "+player.getName());
+//			}
+//		}
+//		
+//	}
 
 	public void onScheduledSave() {
 		forceSaveChanges();
@@ -406,11 +406,9 @@ public class RSPCore implements IRSPCore{
 				saveOfflinPlayerData(); // TODO: async save / set dirty.
 			}
 		}
-		int[] autoAddIds = null;
 		if (opd != null) {
 			// Add groups.
 		}
-		data.autoAddIds = autoAddIds;
 	}
 	
 	private void saveOfflinPlayerData() {
