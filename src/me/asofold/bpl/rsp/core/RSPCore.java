@@ -196,9 +196,10 @@ public class RSPCore implements IRSPCore{
 		// do reload
 		try{
 			res = uncheckedReloadSettings();
+			res &= uncheckedReloadPlayerSettings();
 			setPermissions();
 			transientMan.updateChildrenPermissions();
-			checkAllPlayers();
+			recheckAllPlayers();
 			scheduleTasks();
 		} catch (Throwable t) {
 			Bukkit.getLogger().severe("[RSP] Failed to load configuration: " + t.getMessage());
@@ -210,6 +211,11 @@ public class RSPCore implements IRSPCore{
 		return res;
 	}
 	
+	public boolean uncheckedReloadPlayerSettings() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 	boolean uncheckedReloadSettings() {
 		File file = new File(triple.plugin.getDataFolder(), "rsp.yml");
 		CompatConfig cfg = CompatConfigFactory.getConfig(file);
@@ -282,18 +288,18 @@ public class RSPCore implements IRSPCore{
 		return true;
 	}
 	
-	public void checkAllPlayers() {
-		//if (!permissions.isAvailable()) return;
-		for (Player player : Bukkit.getServer().getOnlinePlayers()) {
-			try{
-				check(player.getUniqueId(), player.getName(), player.getLocation(useLoc));
-				useLoc.setWorld(null);
-			} catch (Throwable t) {
-				System.out.println("[RSP] Failed to check player: "+player.getName());
-			}
-		}
-		
-	}
+//	public void checkAllPlayers() {
+//		//if (!permissions.isAvailable()) return;
+//		for (Player player : Bukkit.getServer().getOnlinePlayers()) {
+//			try{
+//				check(player.getUniqueId(), player.getName(), player.getLocation(useLoc));
+//				useLoc.setWorld(null);
+//			} catch (Throwable t) {
+//				System.out.println("[RSP] Failed to check player: "+player.getName());
+//			}
+//		}
+//		
+//	}
 
 	public void onScheduledSave() {
 		forceSaveChanges();
@@ -351,6 +357,7 @@ public class RSPCore implements IRSPCore{
 			data = new PlayerData(id, playerName);	// Newly created player data
 			checkedOut.remove(playerName); // if that should be the case.
 		}
+		// TODO: Auto-add permdefs.
 		playerData.put(playerName, data);
 		return data;
 	}
