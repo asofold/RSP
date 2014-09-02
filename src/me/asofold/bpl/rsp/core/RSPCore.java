@@ -768,7 +768,9 @@ public class RSPCore implements IRSPCore{
 	 */
 	public void checkout(final UUID id, final String playerName, boolean heavy) { //Player player) {
 		// check all given groups or ALL if not checked.
-		if (checkedOut.size() > maxCheckedOut) releaseCheckedOut();
+		if (checkedOut.size() > maxCheckedOut) {
+			releaseCheckedOut();
+		}
 		final PlayerData data = getData(id, playerName);
 		
 		// TODO: Split to checkout(data), because later name changes might be happening. 
@@ -787,6 +789,7 @@ public class RSPCore implements IRSPCore{
 			if (this.settings.saveOnCheckOut) forceSaveChanges();
 		}
 		data.clearCache();
+		data.groups.clear(); // TODO: Check effects.
 		playerData.remove(playerName);
 		checkedOut.add(playerName);
 	}
