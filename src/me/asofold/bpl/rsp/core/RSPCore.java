@@ -240,7 +240,7 @@ public class RSPCore implements IRSPCore{
 				if (opd.uuid != null) {
 					offlinePlayerDataById.put(opd.uuid, opd);
 				} else if (opd.playerName != null) {
-					offlinePlayerDataByName.put(opd.playerName, opd);
+					offlinePlayerDataByName.put(opd.playerName.toLowerCase(), opd);
 				}
 				// (No else.)
 			} else {
