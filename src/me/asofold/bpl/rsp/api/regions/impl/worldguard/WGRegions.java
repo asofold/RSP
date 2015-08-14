@@ -31,10 +31,10 @@ public class WGRegions implements IRegions {
 		for (final ProtectedRegion region : set){
 			result.addId(region.getId());
 			// TODO: Currently both are checked, to allow distinction by filter-perm.
-			if (!owner && region.isOwner(playerName)) {
+			if (!owner && region.getOwners().contains(uuid)) {
 				owner = true;
 			}
-			if (!member && region.isMember(playerName)) {
+			if (!member && region.getMembers().contains(uuid)) {
 				member = true;
 			}
 			any = true; // Fastest ? :p

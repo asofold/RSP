@@ -17,9 +17,9 @@ import ru.tehkode.permissions.bukkit.PermissionsEx;
 public final class PexPermUser implements IPermissionUser {
 	private final PermissionUser user;
 	private final PexPerms perms; 
-	private final UUID id;
-	private final String player;
-	private final String world;
+	private final UUID playerId;
+	private final String playerName;
+	private final String worldName;
 	
 	/**
 	 * null = not fetched / unprepared !
@@ -31,9 +31,9 @@ public final class PexPermUser implements IPermissionUser {
 		// TODO: use-worlds is ignored, currently
 		// (Other settings are ignored, pex does it.)
 		this.perms = perms;
-		this.id = id;
-		this.player = player;
-		this.world = world;
+		this.playerId = id;
+		this.playerName = player;
+		this.worldName = world;
 		
 		bp = Players.getPlayerExact(player);
 		if (bp != null) {
@@ -69,7 +69,7 @@ public final class PexPermUser implements IPermissionUser {
 	public final void addGroup(final String group) {
 		if (groupCache == null){
 			user.addGroup(group);
-			if (user.isVirtual()) perms.changed.add(player);
+			if (user.isVirtual()) perms.changed.add(playerName);
 		}
 		else groupCache.add(group);
 	}
@@ -78,19 +78,19 @@ public final class PexPermUser implements IPermissionUser {
 	public final void removeGroup(final String group) {
 		if (groupCache == null){
 			user.removeGroup(group);
-			if (user.isVirtual()) perms.changed.add(player);
+			if (user.isVirtual()) perms.changed.add(playerName);
 		}
 		else groupCache.remove(group);
 	}
 
 	@Override
 	public final String getUserName() {
-		return player;
+		return playerName;
 	}
 
 	@Override
 	public final String getWorldName() {
-		return world;
+		return worldName;
 	}
 
 	@Override
@@ -114,7 +114,7 @@ public final class PexPermUser implements IPermissionUser {
 		final String[] groups = new String[groupCache.size()];
 		groupCache.toArray(groups);
 		user.setGroups(groups);
-		if (user.isVirtual()) perms.changed.add(player);
+		if (user.isVirtual()) perms.changed.add(playerName);
 		groupCache = null;
 		return true;
 	}
@@ -126,6 +126,6 @@ public final class PexPermUser implements IPermissionUser {
 
 	@Override
 	public UUID getUniqueId() {
-		return id;
+		return playerId;
 	}
 }

@@ -1,5 +1,7 @@
 package me.asofold.bpl.rsp.plshared.players;
 
+import java.util.Collection;
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -38,9 +40,9 @@ public class OnlinePlayerMap extends SimplePlayerMap{
 	 */
 	public void initWithOnlinePlayers(){
 		clear();
-		final Player[] players = Bukkit.getOnlinePlayers();
-		for (int i = 0; i < players.length; i ++){
-			addPlayer(players[i]);
+		final Collection<? extends Player> players = Bukkit.getOnlinePlayers();
+		for (Player player : players){
+			addPlayer(player);
 		}
 	}
 	

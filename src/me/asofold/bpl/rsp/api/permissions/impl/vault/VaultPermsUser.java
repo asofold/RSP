@@ -14,9 +14,9 @@ import org.bukkit.entity.Player;
 public final class VaultPermsUser implements IPermissionUser {
 	
 	private final Permission perms;
-	private final UUID id;
-	private final String player;
-	private final String world;
+	private final UUID playerId;
+	private final String playerName;
+	private final String worldName;
 	private final boolean useWorlds;
 	
 	private Set<String> groupCache = null;
@@ -24,13 +24,13 @@ public final class VaultPermsUser implements IPermissionUser {
 	
 	public VaultPermsUser(final Permission perms, final UUID id, final String player, final String world, final IPermissionSettings settings) {
 		this.perms = perms;
-		this.id = id;
-		if (settings.getLowerCasePlayers()) this.player = player.toLowerCase();
-		else this.player = player;
+		this.playerId = id;
+		if (settings.getLowerCasePlayers()) this.playerName = player.toLowerCase();
+		else this.playerName = player;
 		// world:
-		if (world == null ) this.world = null;
-		else if (settings.getLowerCaseWorlds()) this.world = world.toLowerCase();
-		else this.world = world;
+		if (world == null ) this.worldName = null;
+		else if (settings.getLowerCaseWorlds()) this.worldName = world.toLowerCase();
+		else this.worldName = world;
 		// use worlds:
 		useWorlds = settings.getUseWorlds();
 		bp = Players.getPlayerExact(player);
@@ -39,37 +39,37 @@ public final class VaultPermsUser implements IPermissionUser {
 	@Override
 	public final boolean has(final String perm) {
 		if (bp != null && bp.hasPermission(perm)) return true;
-		else return perms.has(world, player, perm); // this should work with Vault.
+		else return perms.has(worldName, playerName, perm); // this should work with Vault.
 	}
 
 	@Override
 	public final boolean inGroup(final String group) {
-		if (useWorlds) return perms.playerInGroup(world, player, group);
-		else return perms.playerInGroup((String) null, player, group);
+		if (useWorlds) return perms.playerInGroup(worldName, playerName, group);
+		else return perms.playerInGroup((String) null, playerName, group);
 	}
 
 	@Override
 	public final void addGroup(final String group) {
-		if (useWorlds)perms.playerAddGroup(world, player, group);
-		else perms.playerAddGroup((String) null, player, group);
+		if (useWorlds)perms.playerAddGroup(worldName, playerName, group);
+		else perms.playerAddGroup((String) null, playerName, group);
 		if (groupCache != null) groupCache.add(group);
 	}
 
 	@Override
 	public final void removeGroup(final String group) {
-		if (useWorlds) perms.playerRemoveGroup(world, player, group);
-		else perms.playerRemoveGroup((String) null, player, group);
+		if (useWorlds) perms.playerRemoveGroup(worldName, playerName, group);
+		else perms.playerRemoveGroup((String) null, playerName, group);
 		if (groupCache != null) groupCache.remove(group);
 	}
 
 	@Override
 	public final String getUserName() {
-		return player;
+		return playerName;
 	}
 
 	@Override
 	public final String getWorldName() {
-		return world;
+		return worldName;
 	}
 
 	@Override
@@ -96,7 +96,7 @@ public final class VaultPermsUser implements IPermissionUser {
 
 	@Override
 	public UUID getUniqueId() {
-		return id;
+		return playerId;
 	}
 
 }

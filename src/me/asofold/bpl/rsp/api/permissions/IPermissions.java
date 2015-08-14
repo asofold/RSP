@@ -21,12 +21,12 @@ public interface IPermissions {
 	/**
 	 * Get a user for a specific world, to manipulate world specific permissions.
 	 * NOTE: With some permission plugins such as PEX, the worldName will be ignored, because groups already carry the world information.
-	 * @param id
+	 * @param playerId
 	 * @param playerName
 	 * @param worldName
 	 * @return
 	 */
-	public IPermissionUser getUser(UUID id, String player, String world);
+	public IPermissionUser getUser(UUID playerId, String playerName, String worldName);
 	
 	
 	/**
