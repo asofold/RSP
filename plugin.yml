@@ -8,9 +8,13 @@ softdepend:
 - Vault
 
 permissions:
+  rsp.filter.cmd.rsp:
+    default: false
   rsp.cmd:
+    default: op
     description: "All commands of RSP."
     children:
+      rsp.filter.cmd.rsp: true
       rsp.cmd.stats:
         description: "All stats commands (timings) with '/rsp stats'."
         children:

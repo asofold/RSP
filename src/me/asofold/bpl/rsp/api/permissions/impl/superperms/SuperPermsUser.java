@@ -32,8 +32,12 @@ public final class SuperPermsUser implements IPermissionUser {
 
 	@Override
 	public final boolean has(final String perm) {
-		if (player != null || setPlayer()) return player.hasPermission(perm);
-		else return false;
+		if (player != null || setPlayer()) {
+			return player.hasPermission(perm);
+		}
+		else {
+			return false;
+		}
 	}
 
 	@Override

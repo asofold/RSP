@@ -1,20 +1,20 @@
 package me.asofold.bpl.rsp.api.permissions.impl.pex;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
 import java.util.UUID;
 
+import me.asofold.bpl.rsp.api.permissions.GroupCache;
 import me.asofold.bpl.rsp.api.permissions.IPermissionSettings;
 import me.asofold.bpl.rsp.api.permissions.IPermissionUser;
+import me.asofold.bpl.rsp.api.permissions.impl.SimpleGroupCache;
 import me.asofold.bpl.rsp.plshared.Players;
 
 import org.bukkit.entity.Player;
 
-import ru.tehkode.permissions.PermissionGroup;
 import ru.tehkode.permissions.PermissionUser;
 import ru.tehkode.permissions.bukkit.PermissionsEx;
 
 public final class PexPermUser implements IPermissionUser {
+	
 	private final PermissionUser user;
 	private final PexPerms perms; 
 	private final UUID playerId;
@@ -24,63 +24,71 @@ public final class PexPermUser implements IPermissionUser {
 	/**
 	 * null = not fetched / unprepared !
 	 */
-	private Set<String> groupCache = null;
+	private final GroupCache groupCache = new SimpleGroupCache();
 	private final Player bp;
 	
 	public PexPermUser(final PexPerms perms, final UUID id, final String player, final String world, final IPermissionSettings settings) {
-		// TODO: use-worlds is ignored, currently
 		// (Other settings are ignored, pex does it.)
 		this.perms = perms;
 		this.playerId = id;
 		this.playerName = player;
 		this.worldName = world;
 		
+		// TODO: Just use UUID?
 		bp = Players.getPlayerExact(player);
 		if (bp != null) {
 			// Safest way.
 			user = PermissionsEx.getUser(player);
 		} else {
-			PermissionUser temp = null; // Stupid IDE.
-			try {
-				temp = PermissionsEx.getPermissionManager().getUser(id);
-			} catch (Throwable t) {}
-			if (temp == null) {
-				// Legacy or migration (!).
-				// This is more safe than one might assume (name has been correct a moment ago).
-				temp = PermissionsEx.getUser(player);
-			}
-			user = temp;
+			// Fail hard on legacy versions.
+			user = PermissionsEx.getPermissionManager().getUser(id);
 		}
 	}
 
 	@Override
 	public final boolean has(final String perm) {
-		if (bp != null) return bp.hasPermission(perm);
-		else  return user.has(perm);
+		if (bp != null) {
+			return bp.hasPermission(perm);
+		}
+		else {
+			return user.has(perm);
+		}
 	}
 
 	@Override
 	public final boolean inGroup(final String group) {
-		if (groupCache == null) return user.inGroup(group);
-		else return groupCache.contains(group);
+		if (groupCache.isPrepared()) {
+			return groupCache.isGroupPresent(group);
+		}
+		else {
+			return user.inGroup(group);
+		}
 	}
 
 	@Override
 	public final void addGroup(final String group) {
-		if (groupCache == null){
-			user.addGroup(group);
-			if (user.isVirtual()) perms.changed.add(playerName);
+		if (groupCache.isPrepared()) {
+			groupCache.addGroup(group);
 		}
-		else groupCache.add(group);
+		else {
+			user.addGroup(group);
+			if (user.isVirtual()) {
+				perms.changed.add(playerName);
+			}
+		}
 	}
 
 	@Override
 	public final void removeGroup(final String group) {
-		if (groupCache == null){
-			user.removeGroup(group);
-			if (user.isVirtual()) perms.changed.add(playerName);
+		if (groupCache.isPrepared()) {
+			groupCache.removeGroup(group);
 		}
-		else groupCache.remove(group);
+		else {
+			user.removeGroup(group);
+			if (user.isVirtual()) {
+				perms.changed.add(playerName);
+			}
+		}
 	}
 
 	@Override
@@ -95,33 +103,34 @@ public final class PexPermUser implements IPermissionUser {
 
 	@Override
 	public final boolean prepare() {
-		fetchGroups();
-		return true;
-	}
-
-	private final void fetchGroups() {
-		if (groupCache == null) groupCache = new LinkedHashSet<String>();
-		else groupCache.clear();
-		final PermissionGroup[] groups = user.getGroups(); // TODO: use getGroups(worldName) ?
-		for (int i = 0; i< groups.length; i++){
-			groupCache.add(groups[i].getName());
+		if (groupCache.isPrepared()) {
+			groupCache.clear();
 		}
+		groupCache.addPresentGroups(user.getOwnParentIdentifiers()); // TODO: VERIFY SANITY.
+		return true;
 	}
 
 	@Override
 	public final boolean applyChanges() {
-		if (groupCache == null) return true;
-		final String[] groups = new String[groupCache.size()];
-		groupCache.toArray(groups);
-		user.setGroups(groups);
-		if (user.isVirtual()) perms.changed.add(playerName);
-		groupCache = null;
+		if (groupCache.hasChangesPending()) {
+			// TODO: Do JITs contain the necessary kind of magic by now?
+			for (final String groupName : groupCache.getGroupsToRemove()) {
+				user.removeGroup(groupName);
+			}
+			for (final String groupName : groupCache.getGroupsToAdd()) {
+				user.addGroup(groupName);
+			}
+		}
+		groupCache.clear();
+		if (user.isVirtual()) {
+			perms.changed.add(playerName);
+		}
 		return true;
 	}
 
 	@Override
 	public final void discardChanges() {
-		groupCache = null;
+		groupCache.clear();
 	}
 
 	@Override

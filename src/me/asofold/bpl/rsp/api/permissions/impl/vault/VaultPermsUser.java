@@ -1,14 +1,16 @@
 package me.asofold.bpl.rsp.api.permissions.impl.vault;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
 import java.util.UUID;
 
+import me.asofold.bpl.rsp.api.permissions.GroupCache;
 import me.asofold.bpl.rsp.api.permissions.IPermissionSettings;
 import me.asofold.bpl.rsp.api.permissions.IPermissionUser;
+import me.asofold.bpl.rsp.api.permissions.impl.SimpleGroupCache;
 import me.asofold.bpl.rsp.plshared.Players;
 import net.milkbowl.vault.permission.Permission;
 
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 public final class VaultPermsUser implements IPermissionUser {
@@ -19,47 +21,81 @@ public final class VaultPermsUser implements IPermissionUser {
 	private final String worldName;
 	private final boolean useWorlds;
 	
-	private Set<String> groupCache = null;
-	private final Player bp;
+	private final GroupCache groupCache = new SimpleGroupCache();
+	private final Player player;
+	private final OfflinePlayer offlinePlayer;
 	
 	public VaultPermsUser(final Permission perms, final UUID id, final String player, final String world, final IPermissionSettings settings) {
 		this.perms = perms;
 		this.playerId = id;
-		if (settings.getLowerCasePlayers()) this.playerName = player.toLowerCase();
-		else this.playerName = player;
+		if (settings.getLowerCasePlayers()) {
+			this.playerName = player.toLowerCase();
+		}
+		else {
+			this.playerName = player;
+		}
 		// world:
-		if (world == null ) this.worldName = null;
-		else if (settings.getLowerCaseWorlds()) this.worldName = world.toLowerCase();
-		else this.worldName = world;
+		if (world == null ) {
+			this.worldName = null;
+		}
+		else if (settings.getLowerCaseWorlds()) {
+			this.worldName = world.toLowerCase();
+		}
+		else {
+			this.worldName = world;
+		}
 		// use worlds:
 		useWorlds = settings.getUseWorlds();
-		bp = Players.getPlayerExact(player);
+		this.player = Players.getPlayerExact(player);
+		this.offlinePlayer = this.player == null ? Bukkit.getOfflinePlayer(id) : this.player;
 	}
-
+	
 	@Override
 	public final boolean has(final String perm) {
-		if (bp != null && bp.hasPermission(perm)) return true;
-		else return perms.has(worldName, playerName, perm); // this should work with Vault.
+		if (player != null) {
+			return player.hasPermission(perm);
+		}
+		else {
+			return perms.playerHas(useWorlds ? worldName : null, offlinePlayer, perm);
+		}
 	}
 
 	@Override
 	public final boolean inGroup(final String group) {
-		if (useWorlds) return perms.playerInGroup(worldName, playerName, group);
-		else return perms.playerInGroup((String) null, playerName, group);
+		if (groupCache.isPrepared()) {
+			return groupCache.isGroupPresent(group);
+		}
+		else {
+			return perms.playerInGroup(useWorlds ? this.worldName : null, offlinePlayer, group);
+		}
 	}
 
 	@Override
 	public final void addGroup(final String group) {
-		if (useWorlds)perms.playerAddGroup(worldName, playerName, group);
-		else perms.playerAddGroup((String) null, playerName, group);
-		if (groupCache != null) groupCache.add(group);
+		if (groupCache.isPrepared()) {
+			groupCache.addGroup(group);
+		}
+		else {
+			doAddGroup(group);
+		}
+	}
+	
+	private final void doAddGroup(final String group) {
+		perms.playerAddGroup(useWorlds ? this.worldName : null, offlinePlayer, group);
 	}
 
 	@Override
 	public final void removeGroup(final String group) {
-		if (useWorlds) perms.playerRemoveGroup(worldName, playerName, group);
-		else perms.playerRemoveGroup((String) null, playerName, group);
-		if (groupCache != null) groupCache.remove(group);
+		if (groupCache.isPrepared()) {
+			groupCache.removeGroup(group);
+		}
+		else {
+			doRemoveGroup(group);
+		}
+	}
+	
+	private final void doRemoveGroup(final String group) {
+		perms.playerRemoveGroup(useWorlds ? this.worldName : null, offlinePlayer, group);
 	}
 
 	@Override
@@ -74,24 +110,33 @@ public final class VaultPermsUser implements IPermissionUser {
 
 	@Override
 	public boolean prepare() {
-		if (groupCache == null) groupCache = new LinkedHashSet<String>();
-		else groupCache.clear();
-		final String[] groups = perms.getGroups();
-		for (int i = 0; i < groups.length; i++){
-			groupCache.add(groups[i]);
+		if (groupCache.isPrepared()) {
+			groupCache.clear();
+		}
+		final String[] groupNames = perms.getPlayerGroups(useWorlds ? this.worldName : null, offlinePlayer);
+		for (int i = 0; i < groupNames.length; i++) {
+			groupCache.addPresentGroup(groupNames[i]);
 		}
 		return true;
 	}
 
 	@Override
 	public boolean applyChanges() {
-		// TODO: later...
+		if (groupCache.hasChangesPending()) {
+			for (final String groupName : groupCache.getGroupsToRemove()) {
+				doRemoveGroup(groupName);
+			}
+			for (final String groupName : groupCache.getGroupsToAdd()) {
+				doAddGroup(groupName);
+			}
+		}
+		groupCache.clear();
 		return true;
 	}
 
 	@Override
 	public void discardChanges() {
-		groupCache = null;
+		groupCache.clear();
 	}
 
 	@Override
